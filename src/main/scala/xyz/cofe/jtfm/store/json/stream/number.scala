@@ -66,60 +66,60 @@ object number:
     // '0' -> DecPref
     // '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> DecPart
     // '.' ->
-    case DecStart
+    case DecStart( positive:Boolean=true )
 
     // 'x' | 'X' -> HexInt
     // 'b' | 'B' -> BinInt
     // 'o' | 'O' -> OctInt
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' -> OctInt
     // -> Finish
-    case DecPref
+    case DecPref( positive:Boolean=true )
 
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> DecPart
     // 'n' -> FinishConsumed
     // '.' -> FloatAfterPoint
-    case DecPart
+    case DecPart( digit:List[Int]=List(), positive:Boolean=true )
 
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
     //     | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' 
     //     | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' -> HexInt
     // 'n' -> FinishConsumed
     // -> Finish
-    case HexInt
+    case HexInt( digit:List[Int]=List(), positive:Boolean=true )
 
     // '0' | '1' -> BinInt
     // 'n' -> FinishConsumed
     // -> Finish
-    case BinInt
+    case BinInt( digit:List[Int]=List(), positive:Boolean=true )
 
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' -> OctInt
     // 'n' -> FinishConsumed
     // -> Finish
-    case OctInt
+    case OctInt( digit:List[Int]=List(), positive:Boolean=true )
 
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> FloatFraction
-    // 'e' | 'E' 
+    // 'e' | 'E' -> ExpoSignOpt
     // -> Finish
-    case FloatAfterPoint
+    case FloatAfterPoint( dec:List[Int]=List(), positive:Boolean=true )
 
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> FloatFraction
-    // 'e' | 'E'
+    // 'e' | 'E' -> ExpoSignOpt
     // -> Finish
-    case FloatFraction
+    case FloatFraction( dec:List[Int]=List(), fraction:List[Int]=List(), positive:Boolean=true )
 
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> FloatFraction
     // -> Err
-    case FloatExpectFraction
+    case FloatExpectFraction( dec:List[Int]=List(), positive:Boolean=true )
 
     // '+' | '-' -> Expo
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ->  Expo
     // -> Err
-    case ExpoSignOpt
+    case ExpoSignOpt( dec:List[Int]=List(), fraction:List[Int]=List(), positive:Boolean=true )
 
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ->  Expo
     // -> Finish
-    case Expo
+    case Expo( dec:List[Int]=List(), fraction:List[Int]=List(), expoPositive:Boolean=true, positive:Boolean=true )
 
-    case Finish
-    case FinishConsumed
+    case Finish( base:Int, float:Boolean, big:Boolean, dec:List[Int]=List(), fraction:List[Int]=List(), expo:List[Int]=List(), expoPositive:Boolean=true, positive:Boolean=true )
+    case FinishConsumed( base:Int, float:Boolean, big:Boolean, dec:List[Int]=List(), fraction:List[Int]=List(), expo:List[Int]=List(), expoPositive:Boolean=true, positive:Boolean=true )
     case Err
