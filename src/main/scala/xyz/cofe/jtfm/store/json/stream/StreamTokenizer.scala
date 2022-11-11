@@ -9,8 +9,11 @@ object StreamTokenizer:
     }
 
   private def stateOf[P <: StreamTokenParser[_]:ClassTag](parser:P, state:parser.STATE):String = {
-    val cname = summon[ClassTag[P]].runtimeClass.getName()
-    s"parser $cname state=$state state.isError=${state.isError} state.isAcceptable=${state.isAcceptable} && state.isReady=${state.isReady}"
+    var cname = summon[ClassTag[P]].runtimeClass.getName()
+    if cname.contains("stream.string$Pa") then cname = "string"
+    else if cname.contains("stream.whitespace$Pa") then cname = "whitespace"
+    else if cname.contains("stream.identifier$Pa") then cname = "identifier"
+    s"$cname state=$state  Error=${state.isError} Acceptable=${state.isAcceptable} Ready=${state.isReady}"
   }
 
   private val wsParser = whitespace.Parser()
@@ -19,13 +22,8 @@ object StreamTokenizer:
   private val idParser = identifier.Parser()
   private var idState  = idParser.init
 
-  private def printState =
-    println( stateOf(wsParser,wsState) )
-    println( stateOf(idParser,idState) )
-
-  private def resetAll:Unit =
-      idState = idParser.init
-      wsState = wsParser.init
+  private val strParser = string.Parser()
+  private var strState  = strParser.init
 
   case class Parsed(oldState:StreamTokenParserState, newState:StreamTokenParserState, tokens:Option[List[Token]])
 
@@ -34,7 +32,7 @@ object StreamTokenizer:
   ):Option[Char]=>Parsed = {
     chrOpt => {
       val oldState = readState
-      println(s"parse char='${chrOpt}' ${stateOf(parser,oldState)}")
+      println(s"char='${chrOpt}' ${stateOf(parser,oldState)}")
       val newState = chrOpt match
         case None => 
           writeState(parser.end( oldState ))
@@ -42,18 +40,19 @@ object StreamTokenizer:
           writeState(parser.accept( oldState, chr ))
 
       if newState.succFinish then
-        println(s"success ${stateOf(parser,readState)}")
+        println(s"fetched ${stateOf(parser,readState)}")
         val resultTokens = parser.ready(newState).map(List[Token](_)).getOrElse(List())
         Parsed(oldState,newState,Some(resultTokens))
       else
-        println(s"fail ${stateOf(parser,readState)}")
+        println(s"            ${stateOf(parser,readState)}")
         Parsed(oldState,newState,None)
     }
   }
 
   private var parsers = List(
-    parser(wsParser, wsState, st =>{wsState=st;st}),
-    parser(idParser, idState, st =>{idState=st;st}),
+    parser(wsParser,  wsState,  st =>{wsState=st;st}),
+    parser(idParser,  idState,  st =>{idState=st;st}),
+    parser(strParser, strState, st =>{strState=st;st}),
   ).toArray
 
   def accept(chr:Option[Char]):List[Token] = {
@@ -82,15 +81,23 @@ object StreamTokenizer:
             results = results :+ res
             if idState.isError || idState.succFinish then idState = idParser.init
             if wsState.isError || wsState.succFinish then wsState = wsParser.init
+            if strState.isError || strState.succFinish then strState = strParser.init
           case _ =>
     }
 
     val lastIdx = parsers.length-1
-    toLast.foreach { thisIdx => 
+    toLast.sorted.reverse.foreach { thisIdx =>
       val pThis = parsers(thisIdx)
-      val pLast = parsers(lastIdx)
-      parsers(lastIdx) = pThis
-      parsers(thisIdx) = pLast
+      if thisIdx<(parsers.length-1) then
+        var newArr = new Array[Option[Char]=>Parsed](parsers.length)
+        (0 until parsers.length-1).foreach { i => 
+          if( i>=thisIdx )
+            newArr(i) = parsers(i+1) 
+          else
+            newArr(i) = parsers(i)          
+        }
+        newArr(newArr.length-1) = pThis
+        parsers = newArr
     }
 
     results.headOption.getOrElse(List())

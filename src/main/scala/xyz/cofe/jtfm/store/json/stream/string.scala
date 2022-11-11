@@ -87,7 +87,7 @@ object string:
     override type STATE = State
     override type OUT = Token.Str
 
-    override def init: State = ???
+    override def init: State = State.Init
 
     override def ready(state: State): Option[Token.Str] = state match
       case State.Finish(decoded) => Some(Token.Str(decoded))
