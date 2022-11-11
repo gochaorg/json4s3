@@ -29,10 +29,11 @@ object StreamTokenizer:
 
   private def parser[P <: StreamTokenParser[Char]:ClassTag]( 
     parser:P, readState: =>parser.STATE, writeState:parser.STATE=>parser.STATE 
-  ):Option[Char]=>Parsed = {
+  )(using log:StreamTokenizerLogger)
+  :Option[Char]=>Parsed = {
     chrOpt => {
       val oldState = readState
-      println(s"char='${chrOpt}' ${stateOf(parser,oldState)}")
+      log(s"char='${chrOpt}' ${stateOf(parser,oldState)}")
       val newState = chrOpt match
         case None => 
           writeState(parser.end( oldState ))
@@ -40,11 +41,11 @@ object StreamTokenizer:
           writeState(parser.accept( oldState, chr ))
 
       if newState.succFinish then
-        println(s"fetched ${stateOf(parser,readState)}")
+        log(s"fetched ${stateOf(parser,readState)}")
         val resultTokens = parser.ready(newState).map(List[Token](_)).getOrElse(List())
         Parsed(oldState,newState,Some(resultTokens))
       else
-        println(s"            ${stateOf(parser,readState)}")
+        log(s"            ${stateOf(parser,readState)}")
         Parsed(oldState,newState,None)
     }
   }
@@ -55,9 +56,14 @@ object StreamTokenizer:
     parser(strParser, strState, st =>{strState=st;st}),
   ).toArray
 
-  def accept(chr:Option[Char]):List[Token] = {
-    println("-"*30)
-    println( s"accept '$chr'" )
+  def resetAll:Unit =
+    wsState = wsParser.init
+    idState = idParser.init
+    strState = strParser.init
+
+  def accept(chr:Option[Char])(using log:StreamTokenizerLogger):List[Token] = {
+    log("-"*30)
+    log( s"accept '$chr'" )
 
     var stop= false
     var parserIndex = -1
@@ -77,11 +83,15 @@ object StreamTokenizer:
             else if !oldSt.isReady && newSt.isReady then
               toFirst = toFirst :+ parserIndex
         parsed match
-          case Parsed(_,_,Some(res)) =>
+          case Parsed(_,newSt,Some(res)) =>
             results = results :+ res
-            if idState.isError || idState.succFinish then idState = idParser.init
-            if wsState.isError || wsState.succFinish then wsState = wsParser.init
-            if strState.isError || strState.succFinish then strState = strParser.init
+            if newSt.isConsumed then
+              stop = true
+              resetAll
+            else
+              if idState.isError || idState.succFinish then idState = idParser.init
+              if wsState.isError || wsState.succFinish then wsState = wsParser.init
+              if strState.isError || strState.succFinish then strState = strParser.init
           case _ =>
     }
 

@@ -24,6 +24,12 @@ object whitespace {
       case State.Err => false
       case State.Work(buffer) => true
       case State.Finish(str) => false
+    override def isConsumed: Boolean = this match
+      case State.Init => false
+      case State.Err => false
+      case State.Work(buffer) => true
+      case State.Finish(str) => false
+    
 
   class Parser extends StreamTokenParser[Char]:
     override type STATE = State

@@ -26,6 +26,12 @@ object identifier:
       case State.Err => true
       case _:State.Work => false
       case _:State.Finish => false
+    override def isConsumed: Boolean = this match
+      case State.Init => false
+      case State.Err => false
+      case State.Work(buffer) => true
+      case State.Finish(string) => false
+    
 
   class Parser extends StreamTokenParser[Char]:
     override def init: State = State.Init

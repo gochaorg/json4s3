@@ -82,6 +82,20 @@ object string:
       case State.Err => false
       case _:State.Finish => false
       case _ => true
+
+    override def isConsumed: Boolean = this match
+      case State.Init => false
+      case State.Err => false
+      case State.SimpleChar(quoteChar, decoded) => true
+      case State.EscStart(quoteChar, decoded) => true
+      case State.EscHex(quoteChar, decoded, hexDigit) => true
+      case State.EscUnicodeStart(quoteChar, decoded) => true
+      case State.EscUnicode4digit(quoteChar, decoded, hexDigits) => true
+      case State.EscUnicode5digit(quoteChar, decoded, hexDigits) => true
+      case State.EscZero(quoteChar, decoded) => true
+      case State.EscOct(quoteChar, decoded, octDigit) => true
+      case State.Finish(decoded) => true
+    
     
   class Parser extends StreamTokenParser[Char]:
     override type STATE = State
