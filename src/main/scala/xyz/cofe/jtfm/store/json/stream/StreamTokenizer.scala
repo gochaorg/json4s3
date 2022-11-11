@@ -28,11 +28,15 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
   private val oneCharParser = oneCharTokens.Parser()
   private var oneCharState  = oneCharParser.init
 
+  private val numParser = number.Parser()
+  private var numState  = numParser.init
+
   private var parsers = List(
     parser(wsParser,      wsState,      st =>{wsState=st;st}),
     parser(idParser,      idState,      st =>{idState=st;st}),
     parser(strParser,     strState,     st =>{strState=st;st}),
     parser(oneCharParser, oneCharState, st =>{oneCharState=st;st}),
+    parser(numParser,     numState,     st =>{numState=st;st}),
   ).toArray
 
   /** Сброс состояния всех парсеров */
@@ -41,6 +45,7 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
     idState = idParser.init
     strState = strParser.init
     oneCharState = oneCharParser.init
+    numState = numParser.init
 
   /** Восстановление состоняния парсеров */
   private def restoreAll:Unit =
@@ -48,6 +53,7 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
     if wsState.isError      || wsState.succFinish      then wsState      = wsParser.init
     if strState.isError     || strState.succFinish     then strState     = strParser.init
     if oneCharState.isError || oneCharState.succFinish then oneCharState = oneCharParser.init
+    if numState.isError     || numState.succFinish     then numState     = numParser.init
 
   case class Parsed(oldState:StreamTokenParserState, newState:StreamTokenParserState, tokens:Option[List[Token]])
 
