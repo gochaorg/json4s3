@@ -2,7 +2,7 @@ package xyz.cofe.jtfm.store.json.stream
 
 import scala.reflect.ClassTag
 
-object StreamTokenizer:
+class StreamTokenizer(using log:StreamTokenizerLogger):
   extension [P <: StreamTokenParserState](state:P)
     def succFinish:Boolean = {
       !state.isError && !state.isAcceptable && state.isReady
@@ -25,11 +25,35 @@ object StreamTokenizer:
   private val strParser = string.Parser()
   private var strState  = strParser.init
 
+  private val oneCharParser = oneCharTokens.Parser()
+  private var oneCharState  = oneCharParser.init
+
+  private var parsers = List(
+    parser(wsParser,      wsState,      st =>{wsState=st;st}),
+    parser(idParser,      idState,      st =>{idState=st;st}),
+    parser(strParser,     strState,     st =>{strState=st;st}),
+    parser(oneCharParser, oneCharState, st =>{oneCharState=st;st}),
+  ).toArray
+
+  /** Сброс состояния всех парсеров */
+  private def resetAll:Unit =
+    wsState = wsParser.init
+    idState = idParser.init
+    strState = strParser.init
+    oneCharState = oneCharParser.init
+
+  /** Восстановление состоняния парсеров */
+  private def restoreAll:Unit =
+    if idState.isError      || idState.succFinish      then idState      = idParser.init
+    if wsState.isError      || wsState.succFinish      then wsState      = wsParser.init
+    if strState.isError     || strState.succFinish     then strState     = strParser.init
+    if oneCharState.isError || oneCharState.succFinish then oneCharState = oneCharParser.init
+
   case class Parsed(oldState:StreamTokenParserState, newState:StreamTokenParserState, tokens:Option[List[Token]])
 
   private def parser[P <: StreamTokenParser[Char]:ClassTag]( 
     parser:P, readState: =>parser.STATE, writeState:parser.STATE=>parser.STATE 
-  )(using log:StreamTokenizerLogger)
+  )
   :Option[Char]=>Parsed = {
     chrOpt => {
       val oldState = readState
@@ -50,18 +74,8 @@ object StreamTokenizer:
     }
   }
 
-  private var parsers = List(
-    parser(wsParser,  wsState,  st =>{wsState=st;st}),
-    parser(idParser,  idState,  st =>{idState=st;st}),
-    parser(strParser, strState, st =>{strState=st;st}),
-  ).toArray
-
-  def resetAll:Unit =
-    wsState = wsParser.init
-    idState = idParser.init
-    strState = strParser.init
-
-  def accept(chr:Option[Char])(using log:StreamTokenizerLogger):List[Token] = {
+  /** Принимает очередной символ и генерирует распознаные лексемы (0 или более) */
+  def accept(chr:Option[Char]):List[Token] = {
     log("-"*30)
     log( s"accept '$chr'" )
 
@@ -89,9 +103,7 @@ object StreamTokenizer:
               stop = true
               resetAll
             else
-              if idState.isError || idState.succFinish then idState = idParser.init
-              if wsState.isError || wsState.succFinish then wsState = wsParser.init
-              if strState.isError || strState.succFinish then strState = strParser.init
+              restoreAll
           case _ =>
     }
 
@@ -110,5 +122,8 @@ object StreamTokenizer:
         parsers = newArr
     }
 
-    results.headOption.getOrElse(List())
+    if results.isEmpty then
+      List()
+    else
+      results.flatten
   }

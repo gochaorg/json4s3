@@ -14,22 +14,22 @@ enum Token:
   case Number( val text:String ) extends Token
 
   /** Квадратная скобка */
-  case OpenSuqare( val text:String ) extends Token
+  case OpenSuqare extends Token
   
   /** Квадратная скобка */
-  case CloseSuqare( val text:String ) extends Token
+  case CloseSuqare extends Token
   
   /** Фигурная скобка */
-  case OpenBrace( val text:String ) extends Token
+  case OpenBrace extends Token
   
   /** Фигурная скобка */
-  case CloseBrace( val text:String ) extends Token
+  case CloseBrace extends Token
   
   /** Запятая */
-  case Comma( val text:String ) extends Token
+  case Comma extends Token
   
   /** Двоеточие */
-  case Colon( val text:String ) extends Token
+  case Colon extends Token
 
   /** Пробел */
   case WhiteSpace( val text:String ) extends Token
