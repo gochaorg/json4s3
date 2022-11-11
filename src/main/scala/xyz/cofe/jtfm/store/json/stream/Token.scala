@@ -11,7 +11,13 @@ enum Token:
   case Str( val text:String ) extends Token
 
   /** Число */
-  case Number( val text:String ) extends Token
+  case IntNumber( val num:Int ) extends Token
+
+  /** Число */
+  case BigNumber( val num:BigInt ) extends Token
+
+  /** Число */
+  case FloatNumber( val num:Double ) extends Token
 
   /** Квадратная скобка */
   case OpenSuqare extends Token
