@@ -2,6 +2,10 @@ package xyz.cofe.jtfm.store.json.stream
 
 import scala.reflect.ClassTag
 
+/** 
+ * Лекчичисекий анализатор
+ * для работы с потоком входящих символов
+ */
 class StreamTokenizer(using log:StreamTokenizerLogger):
   extension [P <: StreamTokenParserState](state:P)
     def succFinish:Boolean = {
@@ -10,10 +14,19 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
 
   private def stateOf[P <: StreamTokenParser[_]:ClassTag](parser:P, state:parser.STATE):String = {
     var cname = summon[ClassTag[P]].runtimeClass.getName()
-    if cname.contains("stream.string$Pa") then cname = "string"
-    else if cname.contains("stream.whitespace$Pa") then cname = "whitespace"
-    else if cname.contains("stream.identifier$Pa") then cname = "identifier"
-    s"$cname state=$state  Error=${state.isError} Acceptable=${state.isAcceptable} Ready=${state.isReady}"
+    cname = (if cname.contains("stream.string$Pa") then "string"
+      else if cname.contains("stream.whitespace$Pa") then "whitespace"
+      else if cname.contains("stream.comment$Pa") then "comment"
+      else if cname.contains("stream.number$Pa") then "number"
+      else if cname.contains("stream.identifier$Pa") then "identifier"
+      else if cname.contains("stream.oneCharTokens$Pa") then "oneCharTokens"
+      else cname
+    ).padTo(20,' ')
+
+    s"$cname state=${state.toString().padTo(30,' ')} "+
+    s"Error=${state.isError.toString().padTo(5,' ')} "+
+    s"Acceptable=${state.isAcceptable.toString().padTo(5,' ')} "+
+    s"Ready=${state.isReady.toString().padTo(5,' ')}"
   }
 
   private val wsParser = whitespace.Parser()
@@ -31,12 +44,16 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
   private val numParser = number.Parser()
   private var numState  = numParser.init
 
+  private val cmntParser = comment.Parser()
+  private var cmntState  = cmntParser.init
+
   private var parsers = List(
     parser(wsParser,      wsState,      st =>{wsState=st;st}),
     parser(idParser,      idState,      st =>{idState=st;st}),
     parser(strParser,     strState,     st =>{strState=st;st}),
     parser(oneCharParser, oneCharState, st =>{oneCharState=st;st}),
     parser(numParser,     numState,     st =>{numState=st;st}),
+    parser(cmntParser,    cmntState,    st =>{cmntState=st;st}),
   ).toArray
 
   /** Сброс состояния всех парсеров */
@@ -46,6 +63,7 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
     strState = strParser.init
     oneCharState = oneCharParser.init
     numState = numParser.init
+    cmntState = cmntParser.init
 
   /** Восстановление состоняния парсеров */
   private def restoreAll:Unit =
@@ -54,6 +72,7 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
     if strState.isError     || strState.succFinish     then strState     = strParser.init
     if oneCharState.isError || oneCharState.succFinish then oneCharState = oneCharParser.init
     if numState.isError     || numState.succFinish     then numState     = numParser.init
+    if cmntState.isError    || cmntState.succFinish    then cmntState    = cmntParser.init
 
   case class Parsed(oldState:StreamTokenParserState, newState:StreamTokenParserState, tokens:Option[List[Token]])
 
@@ -63,7 +82,7 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
   :Option[Char]=>Parsed = {
     chrOpt => {
       val oldState = readState
-      log(s"char='${chrOpt}' ${stateOf(parser,oldState)}")
+      log(s"char='${chrOpt}' ".padTo(20,' ')+s"${stateOf(parser,oldState)}")
       val newState = chrOpt match
         case None => 
           writeState(parser.end( oldState ))
@@ -71,11 +90,11 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
           writeState(parser.accept( oldState, chr ))
 
       if newState.succFinish then
-        log(s"fetched ${stateOf(parser,readState)}")
+        log(s"fetched ".padTo(20,' ')+s"${stateOf(parser,readState)}")
         val resultTokens = parser.ready(newState).map(List[Token](_)).getOrElse(List())
         Parsed(oldState,newState,Some(resultTokens))
       else
-        log(s"            ${stateOf(parser,readState)}")
+        log(" ".padTo(20,' ') + s"${stateOf(parser,readState)}")
         Parsed(oldState,newState,None)
     }
   }
@@ -90,6 +109,7 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
     var toLast = List[Int]()
     var toFirst = List[Int]()
     var results = List[List[Token]]()
+
     while( !stop ){      
       parserIndex += 1
       if parserIndex>=parsers.length then

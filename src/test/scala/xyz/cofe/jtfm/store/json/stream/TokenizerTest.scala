@@ -182,4 +182,52 @@ class TokenizerTest extends munit.FunSuite {
     assert(sizeMatch)
     assert(contentMatch)
   }
+
+  test("parse: comment") {
+    println("="*40)
+    println("parse: comment")
+
+    val sample = "  // single line\n" +
+                 "// signle two \r\n" +
+                 " /* multi line */"
+    var tokens = List[Token]()
+    val expect = List[Token](
+      Token.WhiteSpace("  "),
+      Token.SLComment(" single line\n"),
+      Token.SLComment(" signle two \r\n"),
+      Token.WhiteSpace(" "),
+      Token.MLComment(" multi line "),
+      // Token.Identifier("abc"),
+      // Token.WhiteSpace(" "),
+      // Token.IntNumber(-8),
+    )
+    
+    //given log:StreamTokenizerLogger = StreamTokenizerLogger.stdout
+
+    val tokenizer = StreamTokenizer()
+    sample.foreach { chr =>
+      tokenizer.accept(Some(chr)).foreach { tok => 
+        println(s"token ${tok.toString.replace("\r","\\r").replace("\n","\\n")}")
+        tokens = tokens :+ tok
+      }
+    }
+    tokenizer.accept(None).foreach { tok => 
+      println(s"token ${tok.toString.replace("\r","\\r").replace("\n","\\n")}")
+      tokens = tokens :+ tok
+    }
+
+    println("-"*40)
+
+    val sizeMatch = tokens.length == expect.length
+    println(s"size match $sizeMatch")
+
+    val contentMatch = expect.zip(tokens).map { case(exp,act) => 
+      val r = exp==act
+      println(s"expect ${exp.toString.replace("\r","\\r").replace("\n","\\n")} actual ${act.toString.replace("\r","\\r").replace("\n","\\n")} match $r")
+      r
+    }.forall(x => x)
+
+    assert(sizeMatch)
+    assert(contentMatch)
+  }
 }
