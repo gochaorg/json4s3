@@ -7,7 +7,7 @@ enum Token:
   /** не распознанная лексема */
   case Undefined( val text:String ) extends Token
 
-  /** Строка */
+  /** Строка - литерал */
   case Str( val text:String ) extends Token
 
   /** Число */
@@ -40,7 +40,7 @@ enum Token:
   /** Пробел */
   case WhiteSpace( val text:String ) extends Token
 
-  /** Идентификатор */
+  /** Идентификатор, например null / false / some... */
   case Identifier( val text:String ) extends Token
 
   /** Однострочный комментарий */
