@@ -1,7 +1,7 @@
 package xyz.cofe.json4s3.stream.token
 
 /**
-  * Токен
+  * Токен / Лексема JSON
   */
 enum Token:
   /** не распознанная лексема */
