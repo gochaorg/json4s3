@@ -58,7 +58,7 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
   ).toArray
 
   /** Сброс состояния всех парсеров */
-  private def resetAll:Unit =
+  def resetAll:Unit =
     wsState = wsParser.init
     idState = idParser.init
     strState = strParser.init
