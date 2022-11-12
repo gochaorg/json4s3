@@ -1,4 +1,4 @@
-package xyz.cofe.json4s3.stream
+package xyz.cofe.json4s3.stream.token
 
 /** Распознование односимвольных лексем */
 object oneCharTokens:
