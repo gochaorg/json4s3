@@ -17,15 +17,15 @@ class TokenizerTest extends munit.FunSuite {
 
     val tokenizer = StreamTokenizer()
     sample.foreach { chr =>
-      tokenizer.accept(Some(chr)).foreach { tok => 
+      tokenizer.accept(Some(chr)).foreach { _.foreach { tok => 
         println(s"token $tok")
         tokens = tokens :+ tok
       }
-    }
-    tokenizer.accept(None).foreach { tok => 
+    }}
+    tokenizer.accept(None).foreach { _.foreach { tok => 
       println(s"token $tok")
       tokens = tokens :+ tok
-    }
+    }}
 
     println("-"*40)
     
@@ -60,15 +60,15 @@ class TokenizerTest extends munit.FunSuite {
 
     val tokenizer = StreamTokenizer()
     sample.foreach { chr =>
-      tokenizer.accept(Some(chr)).foreach { tok => 
+      tokenizer.accept(Some(chr)).foreach { _.foreach { tok => 
         println(s"token $tok")
         tokens = tokens :+ tok
       }
-    }
-    tokenizer.accept(None).foreach { tok => 
+    }}
+    tokenizer.accept(None).foreach { _.foreach { tok => 
       println(s"token $tok")
       tokens = tokens :+ tok
-    }
+    }}
 
     println("-"*40)
 
@@ -112,15 +112,15 @@ class TokenizerTest extends munit.FunSuite {
 
     val tokenizer = StreamTokenizer()
     sample.foreach { chr =>
-      tokenizer.accept(Some(chr)).foreach { tok => 
+      tokenizer.accept(Some(chr)).foreach { _.foreach {  tok => 
         println(s"token $tok")
         tokens = tokens :+ tok
       }
-    }
-    tokenizer.accept(None).foreach { tok => 
+    }}
+    tokenizer.accept(None).foreach { _.foreach { tok => 
       println(s"token $tok")
       tokens = tokens :+ tok
-    }
+    }}
 
     println("-"*40)
 
@@ -158,15 +158,15 @@ class TokenizerTest extends munit.FunSuite {
 
     val tokenizer = StreamTokenizer()
     sample.foreach { chr =>
-      tokenizer.accept(Some(chr)).foreach { tok => 
+      tokenizer.accept(Some(chr)).foreach { _.foreach { tok => 
         println(s"token $tok")
         tokens = tokens :+ tok
       }
-    }
-    tokenizer.accept(None).foreach { tok => 
+    }}
+    tokenizer.accept(None).foreach { _.foreach { tok => 
       println(s"token $tok")
       tokens = tokens :+ tok
-    }
+    }}
 
     println("-"*40)
 
@@ -206,15 +206,15 @@ class TokenizerTest extends munit.FunSuite {
 
     val tokenizer = StreamTokenizer()
     sample.foreach { chr =>
-      tokenizer.accept(Some(chr)).foreach { tok => 
+      tokenizer.accept(Some(chr)).foreach { _.foreach { tok => 
         println(s"token ${tok.toString.replace("\r","\\r").replace("\n","\\n")}")
         tokens = tokens :+ tok
-      }
+      }}
     }
-    tokenizer.accept(None).foreach { tok => 
+    tokenizer.accept(None).foreach { _.foreach { tok => 
       println(s"token ${tok.toString.replace("\r","\\r").replace("\n","\\n")}")
       tokens = tokens :+ tok
-    }
+    }}
 
     println("-"*40)
 
@@ -229,5 +229,24 @@ class TokenizerTest extends munit.FunSuite {
 
     assert(sizeMatch)
     assert(contentMatch)
+  }
+
+  test("fail parse") {
+    println("="*40)
+    println("parse: fail parse")
+
+    val sample = " 1 !!!"
+
+    given log:StreamTokenizerLogger = StreamTokenizerLogger.stdout
+
+    val tokenizer = StreamTokenizer()
+    sample.foreach { chr =>
+      println(s"char '$chr'")
+      tokenizer.accept(Some(chr))
+        .left.map( err => println(s"error: $err"))
+        .map( _.foreach( tok => {
+          println(s"token ${tok.toString.replace("\r","\\r").replace("\n","\\n")}")
+        }))
+    }
   }
 }

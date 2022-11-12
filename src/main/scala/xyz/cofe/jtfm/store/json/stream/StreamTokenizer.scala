@@ -23,10 +23,11 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
       else cname
     ).padTo(20,' ')
 
-    s"$cname state=${state.toString().padTo(30,' ')} "+
-    s"Error=${state.isError.toString().padTo(5,' ')} "+
-    s"Acceptable=${state.isAcceptable.toString().padTo(5,' ')} "+
-    s"Ready=${state.isReady.toString().padTo(5,' ')}"
+    s"$cname state=${state.toString().padTo(50,' ')} "+
+    s"${if state.isError then "Error" else "     "} "+
+    s"${if state.isAcceptable then "Acceptable" else "          "} "+
+    s"${if state.isReady then "Ready" else "     "} "+
+    s"${if state.isConsumed then "Consumed" else "        "}"
   }
 
   private val wsParser = whitespace.Parser()
@@ -74,6 +75,9 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
     if numState.isError     || numState.succFinish     then numState     = numParser.init
     if cmntState.isError    || cmntState.succFinish    then cmntState    = cmntParser.init
 
+  /** Проверка что состояние всех парсеров - fail */
+  private def isFailState:Boolean = List(wsState, idState, strState, oneCharState, numState, cmntState).forall { s => s.isError || !s.isAcceptable }
+
   case class Parsed(oldState:StreamTokenParserState, newState:StreamTokenParserState, tokens:Option[List[Token]])
 
   private def parser[P <: StreamTokenParser[Char]:ClassTag]( 
@@ -99,8 +103,10 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
     }
   }
 
+  private val failBuffer = new StringBuilder
+
   /** Принимает очередной символ и генерирует распознаные лексемы (0 или более) */
-  def accept(chr:Option[Char]):List[Token] = {
+  def accept(chr:Option[Char]):Either[String,List[Token]] = {
     log("-"*30)
     log( s"accept '$chr'" )
 
@@ -110,6 +116,12 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
     var toFirst = List[Int]()
     var results = List[List[Token]]()
 
+    if chr.isEmpty then 
+      failBuffer.clear()    
+    else
+      failBuffer.append(chr.get)
+
+    // парсинг входящего символа
     while( !stop ){      
       parserIndex += 1
       if parserIndex>=parsers.length then
@@ -127,12 +139,16 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
             results = results :+ res
             if newSt.isConsumed then
               stop = true
+              failBuffer.clear()
               resetAll
             else
+              if failBuffer.length()>1 then
+                failBuffer.delete(0,failBuffer.length()-1)
               restoreAll
           case _ =>
     }
 
+    // перемещение парсеров с error state вниз
     val lastIdx = parsers.length-1
     toLast.sorted.reverse.foreach { thisIdx =>
       val pThis = parsers(thisIdx)
@@ -148,8 +164,11 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
         parsers = newArr
     }
 
-    if results.isEmpty then
-      List()
+    if isFailState then
+      Left(s"all parsers is in error state, failBuffer \"$failBuffer\"")
     else
-      results.flatten
+      if results.isEmpty then
+        Right(List())
+      else
+        Right(results.flatten)
   }
