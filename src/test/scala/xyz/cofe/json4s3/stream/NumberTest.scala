@@ -1,4 +1,4 @@
-package xyz.cofe.jtfm.store.json.stream
+package xyz.cofe.json4s3.stream
 
 class NumberTest extends munit.FunSuite:
   test("parse int 123") {
