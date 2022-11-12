@@ -239,14 +239,20 @@ class TokenizerTest extends munit.FunSuite {
 
     given log:StreamTokenizerLogger = StreamTokenizerLogger.stdout
 
+    var hasErr = false
     val tokenizer = StreamTokenizer()
     sample.foreach { chr =>
       println(s"char '$chr'")
       tokenizer.accept(Some(chr))
-        .left.map( err => println(s"error: $err"))
+        .left.map( err => {
+          hasErr = true
+          println(s"error: $err")
+        })
         .map( _.foreach( tok => {
           println(s"token ${tok.toString.replace("\r","\\r").replace("\n","\\n")}")
         }))
     }
+
+    assert(hasErr)
   }
 }
