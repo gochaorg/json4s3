@@ -197,9 +197,6 @@ class TokenizerTest extends munit.FunSuite {
       Token.SLComment(" signle two \r\n"),
       Token.WhiteSpace(" "),
       Token.MLComment(" multi line "),
-      // Token.Identifier("abc"),
-      // Token.WhiteSpace(" "),
-      // Token.IntNumber(-8),
     )
     
     //given log:StreamTokenizerLogger = StreamTokenizerLogger.stdout

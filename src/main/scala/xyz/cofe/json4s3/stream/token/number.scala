@@ -73,6 +73,7 @@ object number:
     // 'b' | 'B' -> BinInt
     // 'o' | 'O' -> OctInt
     // '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' -> OctInt
+    // '.' -> FloatAfterPoint
     // -> Finish
     case DecPref( positive:Boolean=true ) extends State
 
@@ -347,6 +348,8 @@ object number:
         case 'o' | 'O' => State.OctInt(positive=positive)
         case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' =>
           State.OctInt(positive=positive, digits=List(digit(char).get))
+        case '.' =>
+          State.FloatAfterPoint(dec=List(0),positive=positive)
         case _ => 
           State.Finish( base=10, float=false, big=false, dec=List(0) )
       case State.DecPart(digits, positive) => char match
@@ -431,16 +434,16 @@ object number:
     override def end(state: State): State = state match
       case State.Init => State.Err
       case State.DecStart(positive) => State.Err
-      case State.DecPref(positive) => State.Err
-      case State.DecPart(digits, positive) =>                         State.Finish(base=10, float=false, big=false, dec=digits, fraction=List(), expo=List(), expoPositive=true, positive=positive)
-      case State.HexInt(digits, positive)  =>                         State.Finish(base=16, float=false, big=false, dec=digits, fraction=List(), expo=List(), expoPositive=true, positive=positive)
-      case State.BinInt(digits, positive)  =>                         State.Finish(base=2 , float=false, big=false, dec=digits, fraction=List(), expo=List(), expoPositive=true, positive=positive)
-      case State.OctInt(digits, positive)  =>                         State.Finish(base=8 , float=false, big=false, dec=digits, fraction=List(), expo=List(), expoPositive=true, positive=positive)
-      case State.FloatAfterPoint(dec, positive) =>                    State.Finish(base=10, float=true,  big=false, dec=dec,    fraction=List(), expo=List(), expoPositive=true, positive=positive)
-      case State.FloatFraction(dec, fraction, positive) =>            State.Finish(base=10, float=true,  big=false, dec=dec,    fraction=fraction, expo=List(), expoPositive=true, positive=positive)
-      case State.FloatExpectFraction(dec, positive) =>                State.Finish(base=10, float=true,  big=false, dec=dec,    fraction=List(), expo=List(), expoPositive=true, positive=positive)
-      case State.ExpoSignOpt(dec, fraction, positive) =>              State.Finish(base=10, float=true,  big=false, dec=dec,    fraction=fraction, expo=List(), expoPositive=true, positive=positive)
-      case State.Expo(dec, fraction, expo, expoPositive, positive) => State.Finish(base=10, float=true,  big=false, dec=dec,    fraction=fraction, expo=expo, expoPositive=expoPositive, positive=positive)
+      case State.DecPref(positive) =>                                 State.Finish(base=10, float=false, big=false, dec=List(0), fraction=List(), expo=List(), expoPositive=true, positive=true)
+      case State.DecPart(digits, positive) =>                         State.Finish(base=10, float=false, big=false, dec=digits,  fraction=List(), expo=List(), expoPositive=true, positive=positive)
+      case State.HexInt(digits, positive)  =>                         State.Finish(base=16, float=false, big=false, dec=digits,  fraction=List(), expo=List(), expoPositive=true, positive=positive)
+      case State.BinInt(digits, positive)  =>                         State.Finish(base=2 , float=false, big=false, dec=digits,  fraction=List(), expo=List(), expoPositive=true, positive=positive)
+      case State.OctInt(digits, positive)  =>                         State.Finish(base=8 , float=false, big=false, dec=digits,  fraction=List(), expo=List(), expoPositive=true, positive=positive)
+      case State.FloatAfterPoint(dec, positive) =>                    State.Finish(base=10, float=true,  big=false, dec=dec,     fraction=List(), expo=List(), expoPositive=true, positive=positive)
+      case State.FloatFraction(dec, fraction, positive) =>            State.Finish(base=10, float=true,  big=false, dec=dec,     fraction=fraction, expo=List(), expoPositive=true, positive=positive)
+      case State.FloatExpectFraction(dec, positive) =>                State.Finish(base=10, float=true,  big=false, dec=dec,     fraction=List(), expo=List(), expoPositive=true, positive=positive)
+      case State.ExpoSignOpt(dec, fraction, positive) =>              State.Finish(base=10, float=true,  big=false, dec=dec,     fraction=fraction, expo=List(), expoPositive=true, positive=positive)
+      case State.Expo(dec, fraction, expo, expoPositive, positive) => State.Finish(base=10, float=true,  big=false, dec=dec,     fraction=fraction, expo=expo, expoPositive=expoPositive, positive=positive)
       case s:State.Finish => s
       case s:State.FinishConsumed => s
       case State.Err => State.Err
