@@ -126,6 +126,7 @@ object string:
       case 'd' | 'D' => Some(13)
       case 'e' | 'E' => Some(14)
       case 'f' | 'F' => Some(15)
+      case _ => None
 
     override def accept(state: State, char: Char): State = state match
       case State.Init => char match
@@ -187,7 +188,7 @@ object string:
         if hexDigits.size < 5 && digit.isDefined then
           State.EscUnicode5digit(quoteChar, decoded, hexDigits :+ digit.get)
         else if hexDigits.size == 5 && char=='}' then
-          val digits = hexDigits :+ digit.get
+          val digits = hexDigits
           val chrFromDigit = (digits(0) << 16) |(digits(1) << 12) | (digits(2) << 8) | (digits(3) << 4) | (digits(4))
           java.lang.Character.toString(chrFromDigit).foreach { c => decoded.append(c) }
           State.SimpleChar(quoteChar, decoded)
@@ -210,12 +211,21 @@ object string:
           State.EscOct(quoteChar,decoded,octDigit :+ char)
         case '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7' if octDigit.size == 2 =>
           val digits = (octDigit :+ char).map(c => hex(c).get)
-          val num = digits(0)*8*8 + digits(0)*8 + digits(0)
+          val num = digits(0)*8*8 + digits(1)*8 + digits(2)
           java.lang.Character.toString(num).foreach( c => decoded.append(c) )
           State.SimpleChar(quoteChar,decoded)
         case _ => State.Err
       case s:State.Finish => s
     
     override def end(state: State): State = state match
+      case s:State.Finish => s
+      case State.SimpleChar(_,decoded) => State.Finish(decoded.toString())
+      case State.EscStart(_,decoded) => State.Finish(decoded.toString())
+      case State.EscHex(_,decoded,_) => State.Finish(decoded.toString())
+      case State.EscUnicodeStart(_,decoded) => State.Finish(decoded.toString())
+      case State.EscUnicode4digit(_,decoded,_) => State.Finish(decoded.toString())
+      case State.EscUnicode5digit(_,decoded,_) => State.Finish(decoded.toString())
+      case State.EscZero(_,decoded) => State.Finish(decoded.toString())
+      case State.EscOct(_,decoded,_) => State.Finish(decoded.toString())
       case _ => State.Err
     
