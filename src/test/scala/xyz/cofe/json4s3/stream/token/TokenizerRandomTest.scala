@@ -8,8 +8,8 @@ class TokenizerRandomTest extends munit.FunSuite:
   def randFloatNum:Token.FloatNumber = Token.FloatNumber( ThreadLocalRandom.current().nextDouble() )
   def randNumber:Token = ThreadLocalRandom.current().nextInt(3) match
     case 0 => randIntNum
-    case 1 => randIntNum //randFloatNum
-    case _ => randIntNum //randBigNum
+    case 1 => randFloatNum
+    case _ => randBigNum
 
   val letters = "qwertyuiopasdfghjklzxcvbnm"
 
@@ -70,22 +70,12 @@ class TokenizerRandomTest extends munit.FunSuite:
         }.orElse( Some(List(tok)) ).get
       }
 
-  test("parse seq tokens") {
+  test("parse random tokens") {
     val expectTokens = randTokens(50,100)
     val jsonString = expectTokens.map { _.json }.mkString
-    val tokenizer = StreamTokenizer()
+    val tokenizer = new Tokenizer()
 
-    val actualParsed = (jsonString.map { chr => 
-      tokenizer.accept(Some(chr))
-    }.toList ++
-      List(tokenizer.accept(None)))
-      .foldLeft( Right(List[Token]()):Either[String,List[Token]] ){ case(sum, ritm) =>
-          sum.flatMap { resToks => 
-          ritm.flatMap { toks =>
-            Right(resToks ++ toks)
-          }
-        }
-      }
+    val actualParsed = tokenizer.parse(jsonString)
 
     actualParsed match
       case Left(err) => 
@@ -120,3 +110,55 @@ class TokenizerRandomTest extends munit.FunSuite:
 
         assert(allMatched,"all matched ?")
   }
+
+  // test("fail 1") {
+  //   val expectTokens = List(
+  //     //Token.Str("nae"),
+  //     // Token.WhiteSpace("        "),
+  //     // Token.IntNumber(81),
+  //     // Token.WhiteSpace("     "),
+  //     // Token.Str("qhrqxfvkd"),
+  //     //Token.FloatNumber(0.5501491749404063),
+  //     Token.WhiteSpace(" "),
+  //     Token.BigNumber(BigInt("-23")),
+  //     // Token.WhiteSpace("         "),
+  //     // Token.CloseSuqare,
+  //     // Token.Str("ppfa"),
+  //     // Token.IntNumber(224621680)      ,
+  //   )
+  //   val jsonString = expectTokens.map { _.json }.mkString
+  //   val tokenizer = new Tokenizer()
+
+  //   val actualParsed = tokenizer.parse(jsonString)
+
+  //   actualParsed match
+  //     case Left(err) => 
+  //       println(s"!!! not parsed $err")
+
+  //       println(s"json ${jsonString.replace("\r","\\r").replace("\n","\\n")}")
+
+  //       println("expectTokens")
+  //       expectTokens.map(t => "  "+t.toString().replace("\r","\\r").replace("\n","\\n")).foreach(println)
+
+  //       //println("actual")
+  //       //actual.map(t => "  "+t.toString().replace("\r","\\r").replace("\n","\\n")).foreach(println)
+
+  //       fail(err)
+  //     case Right(actualTokens) =>
+  //       println(s"json ${jsonString.replace("\r","\\r").replace("\n","\\n")}")
+        
+  //       val allMatched = (actualTokens zip expectTokens).map { case (atoken,etoken) => 
+  //         val matched = atoken == etoken
+  //         println( s"${matched} ${atoken} ${etoken}" )
+  //         matched
+  //       }.forall( t => t )
+
+  //       if actualTokens.length!=expectTokens.length then
+  //         println(s"actual ${actualTokens.length}")
+  //         actualTokens.map(t => "  "+t).foreach(println)
+  //         println(s"expect ${expectTokens.length}")
+  //         expectTokens.map(t => "  "+t).foreach(println)
+  //         fail("size not matched")
+  //       assert(allMatched,"all matched ?")
+  // }
+

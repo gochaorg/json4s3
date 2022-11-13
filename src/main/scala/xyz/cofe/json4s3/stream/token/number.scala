@@ -148,6 +148,7 @@ object number:
     override def isAcceptable: Boolean = this match
       case State.Err => false
       case _:State.Finish => false
+      case _:State.FinishConsumed => false
       case _ => true
     
     override def isReady: Boolean = this match
@@ -196,8 +197,8 @@ object number:
       positive:Boolean=true      
     ):Option[Token] = float match
       case true => Some(Token.FloatNumber(
-        // floatValue(dec, fraction, expo, expoPositive, positive)
-        bigDecValue(dec, fraction, expo, expoPositive, positive).toDouble
+        floatValue(dec, fraction, expo, expoPositive, positive)
+        // bigDecValue(dec, fraction, expo, expoPositive, positive).toDouble
       ))
       case false => big match
         case true => Some(Token.BigNumber(bigIntValue(
@@ -267,25 +268,16 @@ object number:
       expoPositive:Boolean, 
       positive:Boolean
     ):Double =
-      val decPart = decValue(10.0, dec, positive, 1.0, -1.0, d => d.toDouble)
-      val frcPart = fractionValue(0.1,fraction,positive,1.0,-1.0,d=>d.toDouble)
-      val baseValue = decPart + frcPart
-
-      if expo.isEmpty then
-        baseValue
-      else 
-        val expInt = decValue(10, expo, true, 1, -1, d=>d )
-        val exp = (if( expoPositive )
-                    {expInt match
-                      case 0 => 1.0
-                      case 1 => 10.0
-                      case _ => (1 until expInt).foldLeft(10.0)((sum,_)=>sum*10.0)}
-                  else
-                    {expInt match
-                      case 0 => 1.0
-                      case 1 => 0.1
-                      case _ => (1 until expInt).foldLeft(0.1)((sum,_)=>sum*0.1)})
-        baseValue * exp
+      val sb = new StringBuilder()
+      if !positive then sb.append("-")
+      dec.foreach( d => sb.append(d) )
+      sb.append(".")
+      fraction.foreach(d => sb.append(d))
+      if expo.nonEmpty then
+        sb.append("e")
+        if !expoPositive then sb.append("-")
+        expo.foreach( d => sb.append(d))
+      sb.toString().toDouble
 
     private def bigDecValue(
       dec:List[Int],

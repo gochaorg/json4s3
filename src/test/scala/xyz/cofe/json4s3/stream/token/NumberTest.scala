@@ -360,3 +360,47 @@ class NumberTest extends munit.FunSuite:
     val matched = res==expect
     assert( matched )
   }
+
+  test("FloatNumber(0.4354165676733556)") {
+    // false FloatNumber(0.4354165676733556) FloatNumber(0.6553376765614534)
+    // false FloatNumber(0.3512607415705538) FloatNumber(0.8355075147062153)
+    
+    val token = Token.FloatNumber(0.4354165676733556)
+    val json = token.json
+
+    val parser = number.Parser()
+    var state = parser.init
+    json.foreach(chr => state = parser.accept(state,chr))
+    state = parser.end(state)
+
+    assert("0.4354165676733556".toDouble == 0.4354165676733556)
+    assert("0.32e+3".toDouble == 0.32e+3)
+
+    val res = parser.ready(state)
+    val expect = Option(Token.FloatNumber(0.4354165676733556))
+    val matched = res==expect
+    assert( matched )
+  }
+
+  //   BigNumber(-294113285720479764)
+  test("BigInt(-294113285720479764)") {
+    // false FloatNumber(0.4354165676733556) FloatNumber(0.6553376765614534)
+    // false FloatNumber(0.3512607415705538) FloatNumber(0.8355075147062153)
+    
+    val token = Token.BigNumber(BigInt("-294113285720479764"))
+    val json = token.json
+
+    val parser = number.Parser()
+    var state = parser.init
+    json.foreach(chr => state = parser.accept(state,chr))
+    state = parser.end(state)
+
+    val res = parser.ready(state)
+    val expect = Option(token)
+    val matched = res==expect
+
+    println(json)
+    println(res)
+
+    assert( matched )
+  }

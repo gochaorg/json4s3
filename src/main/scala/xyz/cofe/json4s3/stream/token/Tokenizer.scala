@@ -26,11 +26,19 @@ class Tokenizer:
       !state.isError && !state.isAcceptable && state.isReady
     }
 
-  def parse(string:String):Either[String,List[Token]] = string.foldLeft( Right( (init, List()) ):Either[String,(Tokenizer.State,List[Token])] ){ case(sum,chr) => 
+  def parse(string:String):Either[String,List[Token]] = {
+    string.foldLeft( Right( (init, List()) ):Either[String,(State,List[Token])] ){ case(sum,chr) => 
       sum.flatMap { case (state, tokens) =>
         accept(state,chr).map { case (newState, newTokens) => (newState,tokens ++ newTokens) }
       }
-    }.map { _._2 }
+    }.flatMap { case( (state,tokens) ) => 
+      end(state).flatMap { case (newState, newTokens) => 
+        Right( 
+          tokens ++ newTokens
+        )
+      }
+    }
+  }
 
   def init:State = State.Init
 
