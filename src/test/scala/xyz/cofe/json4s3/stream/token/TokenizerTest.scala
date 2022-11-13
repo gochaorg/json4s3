@@ -252,4 +252,46 @@ class TokenizerTest extends munit.FunSuite {
 
     assert(hasErr)
   }
+
+  test("case bool,str,str") {
+    println("="*40)
+    println("parse: case bool,str,str")
+ 
+     val sample = "true\"usaifse\"\"epybqo\""
+    var tokens = List[Token]()
+    val expect = List[Token](
+      Token.Identifier("true"),
+      Token.Str("usaifse"),
+      Token.Str("epybqo"),
+    )
+    
+    given log:StreamTokenizerLogger = StreamTokenizerLogger.stdout
+
+    val tokenizer = StreamTokenizer()
+    sample.foreach { chr =>
+      tokenizer.accept(Some(chr)).foreach { _.foreach { tok => 
+        println(s"token ${tok.toString.replace("\r","\\r").replace("\n","\\n")}")
+        tokens = tokens :+ tok
+      }}
+    }
+    tokenizer.accept(None).foreach { _.foreach { tok => 
+      println(s"token ${tok.toString.replace("\r","\\r").replace("\n","\\n")}")
+      tokens = tokens :+ tok
+    }}
+
+    println("-"*40)
+
+    val sizeMatch = tokens.length == expect.length
+    println(s"size match $sizeMatch")
+
+    val contentMatch = expect.zip(tokens).map { case(exp,act) => 
+      val r = exp==act
+      println(s"expect ${exp.toString.replace("\r","\\r").replace("\n","\\n")} actual ${act.toString.replace("\r","\\r").replace("\n","\\n")} match $r")
+      r
+    }.forall(x => x)
+
+    assert(sizeMatch)
+    assert(contentMatch)
+ }
+
 }

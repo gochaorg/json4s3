@@ -78,7 +78,11 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
   /** Проверка что состояние всех парсеров - fail */
   private def isFailState:Boolean = List(wsState, idState, strState, oneCharState, numState, cmntState).forall { s => s.isError || !s.isAcceptable }
 
-  case class Parsed(oldState:StreamTokenParserState, newState:StreamTokenParserState, tokens:Option[List[Token]])
+  case class Parsed(
+    oldState:StreamTokenParserState, 
+    newState:StreamTokenParserState, 
+    tokens:Option[List[Token]],
+  )
 
   private def parser[P <: StreamTokenParser[Char]:ClassTag]( 
     parser:P, readState: =>parser.STATE, writeState:parser.STATE=>parser.STATE 
@@ -164,7 +168,9 @@ class StreamTokenizer(using log:StreamTokenizerLogger):
         parsers = newArr
     }
 
-    if isFailState then
+    log(s"id:${idState} ws:${wsState} cmnt:${cmntState} oneChar:${oneCharState} num:${numState} str:${strState}")
+
+    if chr.isDefined && isFailState then
       Left(s"all parsers is in error state, failBuffer \"$failBuffer\"")
     else
       if results.isEmpty then
