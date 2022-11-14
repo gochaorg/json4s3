@@ -79,17 +79,17 @@ object Parser:
     // SLComment | MLComment | WhiteSpace  -> ObjExpFieldValue
     // Colom -> ObjExpFieldValue
     //       -> Err
-    case ObjAfterFieldName( value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
+    case ObjAfterFieldName( fieldName:String, value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace -> ObjExpFieldValue skip
     //                                    -> Init( current )       -> ObpExpComma
-    case ObjExpFieldValue( value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
+    case ObjExpFieldValue( fieldName:String, value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace -> ObpExpComma skip
     // Comma                              -> ObjAfterComma
     // CloseBrace                         -> pop
     //                                    -> Err
-    case ObpExpComma( value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
+    case ObjExpectComma( value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace -> ObjAfterComma skip
     // CloseBrace                         -> pop
@@ -188,8 +188,9 @@ object Parser:
           case State.ArrExpectValue(arr, parent) =>
             // добавление элемента в родительский массив и переход к запятой
             Right((State.ArrExpectComma(arr ++ value,parent), None))
-          case State.ObjExpFieldValue(value, parent) =>
-            ???
+          case State.ObjExpFieldValue(fieldName, value, parent) =>
+            // добавление элемента в объект и переход к запятой
+            Right(( State.ObjExpectComma( value + (fieldName -> s.toJsArray), parent), None ))
           case _ =>
             Left(s"fail state=$s accept $token")
       case Token.OpenBrace =>
@@ -203,10 +204,8 @@ object Parser:
     case s@State.ArrExpectComma(value,parentOpt) => token match
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
         Right(state,None)
-
       case Token.Comma =>
         Right(( State.ArrAfterComma(value, parentOpt), None ))
-
       case Token.CloseSuqare =>
         parentOpt.getOrElse(State.Init) match
           case State.Init => 
@@ -214,21 +213,15 @@ object Parser:
           case State.ArrExpectValue(arr, parent) =>
             // добавление элемента в родительский массив и переход к запятой
             Right((State.ArrExpectComma(arr ++ value,parent), None))
-          case State.ObjExpFieldValue(value, parent) =>
-            ???
+          case State.ObjExpFieldValue(fieldName, value, parent) =>
+            // добавление элемента в объект и переход к запятой
+            Right(( State.ObjExpectComma( value + (fieldName -> s.toJsArray), parent), None ))
           case _ =>
             Left(s"fail state=$s accept $token")
+      case _ =>
+        Left(s"fail state=$s accept $token")
 
-      case Token.Str(text) => ???
-      case Token.IntNumber(num) => ???
-      case Token.BigNumber(num) => ???
-      case Token.FloatNumber(num) => ???
-      case Token.OpenSuqare => ???
-      case Token.OpenBrace => ???
-      case Token.CloseBrace => ???
-      case Token.Colon => ???
-      case Token.Identifier(text) => ???
-
+    // Ожидание или закрытие массива или очередного значения
     case s@State.ArrAfterComma(value,parentOpt) => token match
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
         Right(state,None)
@@ -239,8 +232,8 @@ object Parser:
           case State.ArrExpectValue(arr, parent) =>
             // добавление элемента в родительский массив и переход к запятой
             Right((State.ArrExpectComma(arr ++ value,parent), None))
-          case State.ObjExpFieldValue(value, parent) =>
-            ???
+          case State.ObjExpFieldValue(fieldName, value, parent) =>
+            Right(( State.ObjExpectComma( value + (fieldName -> s.toJsArray), parent), None ))
           case _ =>
             Left(s"fail state=$s accept $token")
       case _ =>
@@ -248,11 +241,11 @@ object Parser:
 
     case State.ObjExpFieldName(value,parentOpt) =>
       ???
-    case State.ObjAfterFieldName(value,parentOpt) =>
+    case State.ObjAfterFieldName(fieldName,value,parentOpt) =>
       ???
-    case State.ObjExpFieldValue(value,parentOpt) =>
+    case State.ObjExpFieldValue(fieldName,value,parentOpt) =>
       ???
-    case State.ObpExpComma(value,parentOpt) =>
+    case State.ObjExpectComma(value,parentOpt) =>
       ???
     case State.ObjAfterComma(value,parentOpt) =>
       ???
