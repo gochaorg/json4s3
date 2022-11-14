@@ -5,6 +5,7 @@ import xyz.cofe.json4s3.stream.token.Token
 import xyz.cofe.json4s3.stream.token.Token
 import xyz.cofe.json4s3.stream.token.Token
 import xyz.cofe.json4s3.stream.token.Token
+import xyz.cofe.json4s3.stream.token.Token
 
 /**
  * = grammar =
@@ -103,6 +104,41 @@ object Parser:
   trait ObjOps:
     def value:Map[String,AST]
     def toJsObj:AST.JsObj = AST.JsObj(value)
+
+  extension (parentOpt:Option[State])
+    def acceptArray(s:State, token:Token, value:List[AST]):Either[String,(State,Option[AST])] =
+      parentOpt.getOrElse(State.Init) match
+        case State.Init => 
+          Right((State.Init, Some(AST.JsArray(value))))
+        case State.ArrExpectValue(arr, parent) =>
+          // добавление элемента в родительский массив и переход к запятой
+          Right((State.ArrExpectComma(arr ++ value,parent), None))
+        case State.ObjExpFieldValue(fieldName, fields, parent) =>
+          // добавление элемента в объект и переход к запятой
+          Right(( State.ObjExpectComma( fields + (fieldName -> (AST.JsArray(value))), parent), None ))
+        case _ =>
+          Left(s"fail state=$s accept $token")
+    def acceptObject(state:State, token:Token, value:Map[String,AST]):Either[String,(State,Option[AST])] =
+      parentOpt.getOrElse(State.Init) match
+        case State.Init => 
+          Right((State.Init, Some(AST.JsObj(value))))
+        case State.ArrExpectValue(arr, parent) =>
+          Right((
+            State.ArrExpectComma(arr :+ AST.JsObj(value), parent),
+            None
+          ))
+        case State.ObjExpFieldValue(fieldName, fields, parent) =>
+          Right((
+            State.ObjExpectComma(
+              fields + (fieldName -> AST.JsObj(value))
+              ,parent
+            ),
+            None
+          ))
+        case _ =>
+          Left(s"fail state=$state accept $token")
+
+
   
   def accept(state:State, token:Token):Either[String,(State,Option[AST])] = state match
     case State.Init => token match
@@ -125,76 +161,31 @@ object Parser:
     // Ожидание эелемента массива
     case s@State.ArrExpectValue(value,parentOpt) => token match
       case Token.Str(text) => 
-        Right((
-          State.ArrExpectComma(
-            value :+ AST.JsStr(text)
-          ),
-          None
-        ))
+        Right(( State.ArrExpectComma(value :+ AST.JsStr(text)),None ))
       case Token.IntNumber(num) =>
-        Right((
-          State.ArrExpectComma(
-            value :+ AST.JsInt(num)
-          ),
-          None
-        ))
+        Right(( State.ArrExpectComma(value :+ AST.JsInt(num)),None ))
       case Token.BigNumber(num) =>
-        Right((
-          State.ArrExpectComma(
-            value :+ AST.JsBig(num)
-          ),
-          None
-        ))
+        Right(( State.ArrExpectComma(value :+ AST.JsBig(num)),None ))
       case Token.FloatNumber(num) =>
-        Right((
-          State.ArrExpectComma(
-            value :+ AST.JsFloat(num)
-          ),
-          None
-        ))
-      case Token.OpenSuqare =>
-        Right((
-          State.ArrExpectValue(List(),Some(state))
-          ,None
-        ))
+        Right(( State.ArrExpectComma(value :+ AST.JsFloat(num)),None ))
       case Token.Identifier(text) => text match
         case "true" =>
-          Right((
-            State.ArrExpectComma(
-              value :+ AST.JsBool(true)
-            ),
-            None
-          ))
+          Right(( State.ArrExpectComma( value :+ AST.JsBool(true) ),None ))
         case "false" =>
-          Right((
-            State.ArrExpectComma(
-              value :+ AST.JsBool(false)
-            ),
-            None
-          ))
+          Right(( State.ArrExpectComma( value :+ AST.JsBool(false)),None ))
         case "null" =>
-          Right((
-            State.ArrExpectComma(
-              value :+ AST.JsNull
-            ),
-            None
-          ))
+          Right(( State.ArrExpectComma(value :+ AST.JsNull),None ))
+      case Token.OpenSuqare =>
+        Right(( State.ArrExpectValue(List(),Some(state)),None ))
+      case Token.OpenBrace =>
+        Right((
+          State.ObjExpFieldName(Map(),Some(state)),
+          None
+        ))
 
       // Завершение массива
       case Token.CloseSuqare =>
-        parentOpt.getOrElse(State.Init) match
-          case State.Init => 
-            Right((State.Init, Some(s.toJsArray)))
-          case State.ArrExpectValue(arr, parent) =>
-            // добавление элемента в родительский массив и переход к запятой
-            Right((State.ArrExpectComma(arr ++ value,parent), None))
-          case State.ObjExpFieldValue(fieldName, value, parent) =>
-            // добавление элемента в объект и переход к запятой
-            Right(( State.ObjExpectComma( value + (fieldName -> s.toJsArray), parent), None ))
-          case _ =>
-            Left(s"fail state=$s accept $token")
-      case Token.OpenBrace =>
-        ???
+        parentOpt.acceptArray(state, token, value)
       case Token.CloseBrace | Token.Comma | Token.Colon =>
         Left(s"expect value, but accept $token")
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
@@ -207,17 +198,7 @@ object Parser:
       case Token.Comma =>
         Right(( State.ArrAfterComma(value, parentOpt), None ))
       case Token.CloseSuqare =>
-        parentOpt.getOrElse(State.Init) match
-          case State.Init => 
-            Right((State.Init, Some(s.toJsArray)))
-          case State.ArrExpectValue(arr, parent) =>
-            // добавление элемента в родительский массив и переход к запятой
-            Right((State.ArrExpectComma(arr ++ value,parent), None))
-          case State.ObjExpFieldValue(fieldName, value, parent) =>
-            // добавление элемента в объект и переход к запятой
-            Right(( State.ObjExpectComma( value + (fieldName -> s.toJsArray), parent), None ))
-          case _ =>
-            Left(s"fail state=$s accept $token")
+        parentOpt.acceptArray(state, token, value)
       case _ =>
         Left(s"fail state=$s accept $token")
 
@@ -226,27 +207,81 @@ object Parser:
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
         Right(state,None)
       case Token.CloseSuqare =>
-        parentOpt.getOrElse(State.Init) match
-          case State.Init => 
-            Right((State.Init, Some(s.toJsArray)))
-          case State.ArrExpectValue(arr, parent) =>
-            // добавление элемента в родительский массив и переход к запятой
-            Right((State.ArrExpectComma(arr ++ value,parent), None))
-          case State.ObjExpFieldValue(fieldName, value, parent) =>
-            Right(( State.ObjExpectComma( value + (fieldName -> s.toJsArray), parent), None ))
-          case _ =>
-            Left(s"fail state=$s accept $token")
+        parentOpt.acceptArray(state, token, value)
       case _ =>
         accept( State.ArrExpectValue(value,parentOpt), token )
 
-    case State.ObjExpFieldName(value,parentOpt) =>
-      ???
-    case State.ObjAfterFieldName(fieldName,value,parentOpt) =>
-      ???
-    case State.ObjExpFieldValue(fieldName,value,parentOpt) =>
-      ???
-    case State.ObjExpectComma(value,parentOpt) =>
-      ???
-    case State.ObjAfterComma(value,parentOpt) =>
-      ???
+    case s@State.ObjExpFieldName(value,parentOpt) => token match
+      case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
+        Right(state,None)
+      case Token.CloseBrace =>
+        parentOpt.acceptObject(state,token,value)
+      case Token.Identifier(text) =>
+        Right((
+          State.ObjAfterFieldName(text, value, parentOpt),
+          None
+        ))
+      case Token.Str(text) =>
+        Right((
+          State.ObjAfterFieldName(text, value, parentOpt),
+          None
+        ))
+      case _ =>
+        Left(s"fail state=$s accept $token")
+
+    case s@State.ObjAfterFieldName(fieldName,value,parentOpt) => token match
+      case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
+        Right(state,None)
+      case Token.Colon =>
+        Right((
+          State.ObjExpFieldValue(fieldName,value,parentOpt),
+          None
+        ))
+      case _ =>
+        Left(s"fail state=$s accept $token")
+
+    case s@State.ObjExpFieldValue(fieldName,value,parentOpt) => token match
+      case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
+        Right(state,None)
+      case Token.Str(text) => 
+        Right(( State.ObjExpectComma(value+(fieldName->AST.JsStr(text))) , None ))
+      case Token.IntNumber(num) =>
+        Right(( State.ObjExpectComma(value+(fieldName->AST.JsInt(num))) , None ))
+      case Token.BigNumber(num) =>
+        Right(( State.ObjExpectComma(value+(fieldName->AST.JsBig(num))) , None ))
+      case Token.FloatNumber(num) =>
+        Right(( State.ObjExpectComma(value+(fieldName->AST.JsFloat(num))) , None ))
+      case Token.Identifier(text) => text match
+        case "true" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsBool(true))) , None ))
+        case "false" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsBool(false))) , None ))
+        case "null" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsNull)) , None ))
+      case Token.OpenSuqare =>
+        Right((
+          State.ArrExpectValue(List(),Some(state)),
+          None
+        ))
+      case Token.OpenBrace =>
+        Right((
+          State.ObjExpFieldName(Map(),Some(state)),
+          None
+        ))
+      case _ =>
+        Left(s"fail state=$s accept $token, expect value")
+
+    case s@State.ObjExpectComma(value,parentOpt) => token match
+      case Token.Comma =>
+        Right((
+          State.ObjAfterComma(value,parentOpt),
+          None
+        ))
+      case Token.CloseBrace =>
+        parentOpt.acceptObject(state,token,value)
+      case _ => 
+        Left(s"fail state=$state accept $token")
+
+    case s@State.ObjAfterComma(value,parentOpt) => token match
+      case Token.CloseBrace =>
+        parentOpt.acceptObject(state,token,value)
+      case _ =>
+        accept( State.ObjExpFieldName(value,parentOpt), token )
   

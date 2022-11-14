@@ -1,6 +1,7 @@
 package xyz.cofe.json4s3.stream.parser
 
 import xyz.cofe.json4s3.stream.token.Token
+import xyz.cofe.json4s3.stream.token.Tokenizer
 import xyz.cofe.json4s3.stream.ast._
 
 class ParserTest extends munit.FunSuite:
@@ -153,4 +154,110 @@ class ParserTest extends munit.FunSuite:
     assert(resultJsOpt.isDefined)
 
     assert( resultJsOpt.get == AST.JsArray(List( AST.JsInt(1), AST.JsInt(2) )) )
+  }
+
+  test("object {}") {
+    println("="*40)
+    println("object {}")
+    
+    val result = List(
+      Token.OpenBrace,
+      Token.CloseBrace,
+    ).foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+      sum.flatMap { case (state, _) => 
+        val res = Parser.accept(state,tok)
+        println(s"parse $tok => $res")
+        res
+      }
+    }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(Map()) )
+  }
+
+  test("object {'a':1}") {
+    println("="*40)
+    println("object {'a':1}")
+    
+    val result = List(
+      Token.OpenBrace,
+      Token.Str("a"),
+      Token.Colon,
+      Token.IntNumber(1),
+      Token.CloseBrace,
+    ).foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+      sum.flatMap { case (state, _) => 
+        val res = Parser.accept(state,tok)
+        println(s"parse $tok => $res")
+        res
+      }
+    }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1))) )
+  }
+
+  test("object {'a':1,}") {
+    println("="*40)
+    println("object {'a':1,}")
+    
+    val result = List(
+      Token.OpenBrace,
+      Token.Str("a"),
+      Token.Colon,
+      Token.IntNumber(1),
+      Token.Comma,
+      Token.CloseBrace,
+    ).foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+      sum.flatMap { case (state, _) => 
+        val res = Parser.accept(state,tok)
+        println(s"parse $tok => $res")
+        res
+      }
+    }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1))) )
+  }
+
+  test("object {'a':1,'b':2}") {
+    println("="*40)
+    println("object {'a':1,'b':2}")
+    
+    val result = List(
+      Token.OpenBrace,
+      Token.Str("a"),
+      Token.Colon,
+      Token.IntNumber(1),
+      Token.Comma,
+      Token.Str("b"),
+      Token.Colon,
+      Token.IntNumber(2),
+      Token.CloseBrace,
+    ).foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+      sum.flatMap { case (state, _) => 
+        val res = Parser.accept(state,tok)
+        println(s"parse $tok => $res")
+        res
+      }
+    }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1), "b"->AST.JsInt(2))) )
   }
