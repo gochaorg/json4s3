@@ -18,6 +18,9 @@ object Tokenizer:
     case CommentParse( parser:comment.Parser, state:comment.State )
     case WhitespaceParse( parser:whitespace.Parser, state:whitespace.State )
 
+/**
+  * Парсинг лексем Json
+  */
 class Tokenizer:
   import Tokenizer._
 
