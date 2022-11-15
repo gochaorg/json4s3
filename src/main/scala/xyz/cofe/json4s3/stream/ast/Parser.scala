@@ -138,8 +138,18 @@ object Parser:
         case _ =>
           Left(s"fail state=$state accept $token")
 
+  def parse(tokens:Seq[Token]) =
+    tokens
+      .foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+        sum.flatMap { case (state, _) => 
+          Parser.accept(state,tok)
+        }
+      }.map { _._2 }.flatMap { jsOpt => 
+        jsOpt match
+          case None => Left("not parsed! no data")
+          case Some(value) => Right(value)
+      }
 
-  
   def accept(state:State, token:Token):Either[String,(State,Option[AST])] = state match
     case State.Init => token match
       case Token.Str(text) => Right((State.Init,Some(AST.JsStr(text))))
