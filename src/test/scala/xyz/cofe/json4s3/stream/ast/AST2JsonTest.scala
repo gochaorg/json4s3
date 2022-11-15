@@ -1,4 +1,4 @@
-package xyz.cofe.json4s3.stream.parser
+package xyz.cofe.json4s3.stream.ast
 
 import xyz.cofe.json4s3.stream.ast.AST._
 import xyz.cofe.json4s3.stream.ast._
