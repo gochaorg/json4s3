@@ -139,16 +139,25 @@ object Parser:
           Left(s"fail state=$state accept $token")
 
   def parse(tokens:Seq[Token]) =
-    tokens
-      .foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
-        sum.flatMap { case (state, _) => 
-          Parser.accept(state,tok)
-        }
-      }.map { _._2 }.flatMap { jsOpt => 
-        jsOpt match
-          case None => Left("not parsed! no data")
-          case Some(value) => Right(value)
-      }
+    var tokensRest = tokens
+    var state = Parser.State.Init
+    var stop = false
+    var result:Either[String,(AST,Seq[Token])] = Left("not parsed")
+    while !stop do
+      if tokensRest.isEmpty then
+        stop = true
+      else
+        Parser.accept(state, tokensRest.head) match
+          case Left(err) => 
+            result = Left(err)
+            stop = true
+          case Right((newState,Some(ast))) =>
+            result = Right((ast,tokensRest.tail))
+            stop = true
+          case Right((newState,_)) =>
+            tokensRest = tokensRest.tail
+            state = newState
+    result
 
   def accept(state:State, token:Token):Either[String,(State,Option[AST])] = state match
     case State.Init => token match
@@ -279,6 +288,8 @@ object Parser:
         Left(s"fail state=$s accept $token, expect value")
 
     case s@State.ObjExpectComma(value,parentOpt) => token match
+      case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
+        Right(state,None)
       case Token.Comma =>
         Right((
           State.ObjAfterComma(value,parentOpt),
@@ -290,6 +301,8 @@ object Parser:
         Left(s"fail state=$state accept $token")
 
     case s@State.ObjAfterComma(value,parentOpt) => token match
+      case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
+        Right(state,None)
       case Token.CloseBrace =>
         parentOpt.acceptObject(state,token,value)
       case _ =>

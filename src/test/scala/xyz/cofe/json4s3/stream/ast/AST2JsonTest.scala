@@ -20,12 +20,14 @@ class AST2JsonTest extends munit.FunSuite:
       )
     ).json
 
-    val tokens = Tokenizer.parse(jsnString).getOrElse(List())
+    println(jsnString)
+
+    val tokens = Tokenizer.parse(jsnString).getOrElse(List())    
     
     val jsTreeEt = Parser.parse(tokens)
     assert( jsTreeEt.isRight )
 
-    val jsTree = jsTreeEt.getOrElse({
+    val jsTree = jsTreeEt.map(_._1).getOrElse({
       throw new Error("!")
     })
 
