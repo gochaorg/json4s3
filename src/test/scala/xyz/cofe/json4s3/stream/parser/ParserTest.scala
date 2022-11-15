@@ -261,3 +261,80 @@ class ParserTest extends munit.FunSuite:
 
     assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1), "b"->AST.JsInt(2))) )
   }
+
+  test("json {'a':1,'b':2}") {
+    println("="*40)
+    println("json {'a':1,'b':2}")
+
+    Tokenizer.parse("{'a':1,'b':2}").getOrElse(List())
+    
+    val result = Tokenizer
+    .parse("{'a':1,'b':2}")
+    .getOrElse(List())
+    .foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+      sum.flatMap { case (state, _) => 
+        val res = Parser.accept(state,tok)
+        println(s"parse $tok => $res")
+        res
+      }
+    }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1), "b"->AST.JsInt(2))) )
+  }
+
+  test("json {'a':1,'b':[]}") {
+    println("="*40)
+    println("object {'a':1,'b':[]}")
+
+    val result = Tokenizer
+    .parse("{'a':1,'b':[]}")
+    .getOrElse(List())
+    .foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+      sum.flatMap { case (state, _) => 
+        val res = Parser.accept(state,tok)
+        println(s"parse $tok => $res")
+        res
+      }
+    }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1), "b"->AST.JsArray(List()))) )
+  }
+
+
+  test("json {'a':1,'b':[1]}") {
+    println("="*40)
+    println("object {'a':1,'b':[1]}")
+
+    val result = Tokenizer
+    .parse("{'a':1,'b':[1]}")
+    .getOrElse(List())
+    .foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+      sum.flatMap { case (state, _) => 
+        val res = Parser.accept(state,tok)
+        println(s"parse $tok => $res")
+        res
+      }
+    }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(
+      Map(
+        "a"->AST.JsInt(1), 
+        "b"->AST.JsArray(List(AST.JsInt(1)))
+      )
+    ))
+  }

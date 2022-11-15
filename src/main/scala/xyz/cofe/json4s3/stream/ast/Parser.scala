@@ -161,20 +161,20 @@ object Parser:
     // Ожидание эелемента массива
     case s@State.ArrExpectValue(value,parentOpt) => token match
       case Token.Str(text) => 
-        Right(( State.ArrExpectComma(value :+ AST.JsStr(text)),None ))
+        Right(( State.ArrExpectComma(value :+ AST.JsStr(text),parentOpt),None ))
       case Token.IntNumber(num) =>
-        Right(( State.ArrExpectComma(value :+ AST.JsInt(num)),None ))
+        Right(( State.ArrExpectComma(value :+ AST.JsInt(num),parentOpt),None ))
       case Token.BigNumber(num) =>
-        Right(( State.ArrExpectComma(value :+ AST.JsBig(num)),None ))
+        Right(( State.ArrExpectComma(value :+ AST.JsBig(num),parentOpt),None ))
       case Token.FloatNumber(num) =>
-        Right(( State.ArrExpectComma(value :+ AST.JsFloat(num)),None ))
+        Right(( State.ArrExpectComma(value :+ AST.JsFloat(num),parentOpt),None ))
       case Token.Identifier(text) => text match
         case "true" =>
-          Right(( State.ArrExpectComma( value :+ AST.JsBool(true) ),None ))
+          Right(( State.ArrExpectComma( value :+ AST.JsBool(true),parentOpt),None ))
         case "false" =>
-          Right(( State.ArrExpectComma( value :+ AST.JsBool(false)),None ))
+          Right(( State.ArrExpectComma( value :+ AST.JsBool(false),parentOpt),None ))
         case "null" =>
-          Right(( State.ArrExpectComma(value :+ AST.JsNull),None ))
+          Right(( State.ArrExpectComma(value :+ AST.JsNull,parentOpt),None ))
       case Token.OpenSuqare =>
         Right(( State.ArrExpectValue(List(),Some(state)),None ))
       case Token.OpenBrace =>

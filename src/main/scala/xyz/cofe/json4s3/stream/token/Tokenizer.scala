@@ -18,6 +18,11 @@ object Tokenizer:
     case CommentParse( parser:comment.Parser, state:comment.State )
     case WhitespaceParse( parser:whitespace.Parser, state:whitespace.State )
 
+  def parse(str:String) = {
+    val inst = new Tokenizer()
+    inst.parse(str)
+  }
+
 /**
   * Парсинг лексем Json
   */
