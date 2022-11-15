@@ -244,17 +244,17 @@ object Parser:
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
         Right(state,None)
       case Token.Str(text) => 
-        Right(( State.ObjExpectComma(value+(fieldName->AST.JsStr(text))) , None ))
+        Right(( State.ObjExpectComma(value+(fieldName->AST.JsStr(text)),parentOpt) , None ))
       case Token.IntNumber(num) =>
-        Right(( State.ObjExpectComma(value+(fieldName->AST.JsInt(num))) , None ))
+        Right(( State.ObjExpectComma(value+(fieldName->AST.JsInt(num)),parentOpt) , None ))
       case Token.BigNumber(num) =>
-        Right(( State.ObjExpectComma(value+(fieldName->AST.JsBig(num))) , None ))
+        Right(( State.ObjExpectComma(value+(fieldName->AST.JsBig(num)),parentOpt) , None ))
       case Token.FloatNumber(num) =>
-        Right(( State.ObjExpectComma(value+(fieldName->AST.JsFloat(num))) , None ))
+        Right(( State.ObjExpectComma(value+(fieldName->AST.JsFloat(num)),parentOpt) , None ))
       case Token.Identifier(text) => text match
-        case "true" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsBool(true))) , None ))
-        case "false" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsBool(false))) , None ))
-        case "null" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsNull)) , None ))
+        case "true" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsBool(true)),parentOpt) , None ))
+        case "false" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsBool(false)),parentOpt) , None ))
+        case "null" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsNull),parentOpt) , None ))
       case Token.OpenSuqare =>
         Right((
           State.ArrExpectValue(List(),Some(state)),

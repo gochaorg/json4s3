@@ -310,7 +310,6 @@ class ParserTest extends munit.FunSuite:
     assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1), "b"->AST.JsArray(List()))) )
   }
 
-
   test("json {'a':1,'b':[1]}") {
     println("="*40)
     println("object {'a':1,'b':[1]}")
@@ -335,6 +334,75 @@ class ParserTest extends munit.FunSuite:
       Map(
         "a"->AST.JsInt(1), 
         "b"->AST.JsArray(List(AST.JsInt(1)))
+      )
+    ))
+  }
+
+  val json_obj1 = "{'a':1,'b':[1,{}]}"
+  test(s"json {'a':1,'b':[1,{}]}") {
+    println("="*40)
+    println(s"json $json_obj1")
+
+    val result = Tokenizer
+    .parse(json_obj1)
+    .getOrElse(List())
+    .foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+      sum.flatMap { case (state, _) => 
+        val res = Parser.accept(state,tok)
+        println(s"parse $tok => $res")
+        res
+      }
+    }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(
+      Map(
+        "a"->AST.JsInt(1), 
+        "b"->AST.JsArray(List(
+          AST.JsInt(1),
+          AST.JsObj(Map())
+        ))
+      )
+    ))
+  }
+
+  val json_obj2 = "{'a':1,'b':[2,{'c':3}]}"
+  test(s"json {'a':1,'b':[2,{'c':3}]}") {
+    println("="*40)
+    println(s"json $json_obj2")
+
+    val tokens = Tokenizer.parse(json_obj2).getOrElse(List())
+    println("tokens:")
+    tokens.map { t => "  "+t }.foreach(println)
+
+    val result = 
+      tokens
+      .foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+        sum.flatMap { case (state, _) => 
+          val res = Parser.accept(state,tok)
+          println(s"parse $tok => $res")
+          res
+        }
+      }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(
+      Map(
+        "a"->AST.JsInt(1), 
+        "b"->AST.JsArray(List(
+          AST.JsInt(2),
+          AST.JsObj(Map(
+            "c"->AST.JsInt(3)
+          ))
+        ))
       )
     ))
   }
