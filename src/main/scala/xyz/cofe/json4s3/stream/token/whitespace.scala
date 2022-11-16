@@ -32,6 +32,9 @@ object whitespace {
       case _:State.Err => false
       case State.Work(buffer) => true
       case State.Finish(str) => false
+    override def error: Option[TokenError] = this match
+      case State.Err(err) => Some(err)
+      case _ => None    
     
 
   class Parser extends StreamTokenParser[Char]:

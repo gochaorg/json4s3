@@ -1,5 +1,8 @@
 package xyz.cofe.json4s3.stream.token
 
+import xyz.cofe.json4s3.errors._
+import xyz.cofe.json4s3.errors.TokenError._
+
 /** Парсер лексемы */
 trait StreamTokenParser[CHAR]:
   /** Состояние парсера */
@@ -23,6 +26,9 @@ trait StreamTokenParser[CHAR]:
 trait StreamTokenParserState:
   /** состояние ошибки входных данных */
   def isError:Boolean
+
+  /** ошибка */
+  def error:Option[TokenError]
 
   /** входные данные принимаются */
   def isAcceptable:Boolean

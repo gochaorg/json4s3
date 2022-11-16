@@ -149,6 +149,10 @@ object number:
 
     case Err( err:TokenError ) extends State
 
+    override def error: Option[TokenError] = this match
+      case State.Err(err) => Some(err)
+      case _ => None    
+
     override def isAcceptable: Boolean = this match
       case _:State.Err => false
       case _:State.Finish => false

@@ -61,6 +61,10 @@ object comment:
       case _:State.Finish => true
       case _:State.FinishConsumed => true
       case _ => false
+
+    override def error: Option[TokenError] = this match
+      case State.Err(err) => Some(err)
+      case _ => None    
     
     override def isError: Boolean = this match
       case State.Err(_) => true

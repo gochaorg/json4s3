@@ -1,6 +1,7 @@
 package xyz.cofe.json4s3.stream.token
 
 import xyz.cofe.json4s3.errors._
+import xyz.cofe.json4s3.errors.TokenError._
 
 object Tokenizer:
   enum State:
@@ -42,8 +43,8 @@ class Tokenizer:
     * @param string строка
     * @return лексеммы
     */
-  def parse(string:String):Either[String,List[Token]] = {
-    string.foldLeft( Right( (init, List()) ):Either[String,(State,List[Token])] ){ case(sum,chr) => 
+  def parse(string:String):Either[TokenError,List[Token]] = {
+    string.foldLeft( Right( (init, List()) ):Either[TokenError,(State,List[Token])] ){ case(sum,chr) => 
       sum.flatMap { case (state, tokens) =>
         accept(state,chr).map { case (newState, newTokens) => (newState,tokens ++ newTokens) }
       }
@@ -58,7 +59,7 @@ class Tokenizer:
 
   def init:State = State.Init
 
-  def accept(state:State, char:Char):Either[String,(State,List[Token])] = state match
+  def accept(state:State, char:Char):Either[TokenError,(State,List[Token])] = state match
     case State.Init => char match
       case '-' | '.' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
         val parser = number.Parser()
@@ -87,13 +88,13 @@ class Tokenizer:
         val st = parser.accept(parser.init, char)
         Right(( State.IdParser(parser, st),List()))
       case _ =>
-        Left("expect: - . 0..9 { } [ ] , : / whitespace letters _ $")
+        Left(DidNotMatchExpectInput("expect: - . 0..9 { } [ ] , : / whitespace letters _ $"))
 
     //////////////////////////////////////////////////////////////////////////////
     case State.NumParse(parser, state) =>
       val newState = parser.accept(state, char)
       if newState.isError then
-        Left(s"can't parse number char '$char', number parser state: $newState")
+        Left(DidNotMatchExpectInput(s"can't parse number char '$char', number parser state: $newState"))
       else if newState.succFinish then
         if newState.isConsumed then
           Right(( State.Init , List(parser.ready(newState).get )) )
@@ -108,7 +109,7 @@ class Tokenizer:
     case State.StrParse(parser, state) =>
       val newState = parser.accept(state, char)
       if newState.isError then
-        Left(s"can't parse number char '$char', number parser state: $newState")
+        Left(DidNotMatchExpectInput(s"can't parse number char '$char', number parser state: $newState"))
       else if newState.succFinish then
         if newState.isConsumed then
           Right(( State.Init , List(parser.ready(newState).get )) )
@@ -123,7 +124,7 @@ class Tokenizer:
     case State.IdParser(parser, state) =>
       val newState = parser.accept(state, char)
       if newState.isError then
-        Left(s"can't parse number char '$char', number parser state: $newState")
+        Left(DidNotMatchExpectInput(s"can't parse number char '$char', number parser state: $newState"))
       else if newState.succFinish then
         if newState.isConsumed then
           Right(( State.Init , List(parser.ready(newState).get )) )
@@ -138,7 +139,7 @@ class Tokenizer:
     case State.CommentParse(parser, state) =>
       val newState = parser.accept(state, char)
       if newState.isError then
-        Left(s"can't parse number char '$char', number parser state: $newState")
+        Left(DidNotMatchExpectInput(s"can't parse number char '$char', number parser state: $newState"))
       else if newState.succFinish then
         if newState.isConsumed then
           Right(( State.Init , List(parser.ready(newState).get )) )
@@ -153,7 +154,7 @@ class Tokenizer:
     case State.WhitespaceParse(parser, state) =>
       val newState = parser.accept(state, char)
       if newState.isError then
-        Left(s"can't parse number char '$char', number parser state: $newState")
+        Left(DidNotMatchExpectInput(s"can't parse number char '$char', number parser state: $newState"))
       else if newState.succFinish then
         if newState.isConsumed then
           Right(( State.Init , List(parser.ready(newState).get )) )
@@ -164,7 +165,7 @@ class Tokenizer:
       else
         Right( State.WhitespaceParse(parser,newState), List() )
 
-  def end(state:State):Either[String,(State,List[Token])] = state match
+  def end(state:State):Either[TokenError,(State,List[Token])] = state match
     case State.Init => Right((State.Init,List()))
     case State.NumParse(parser, state) =>
       val newState = parser.end(state)

@@ -27,6 +27,10 @@ object oneCharTokens:
       case _:State.Err => false
       case _:State.Finish => true
 
+    override def error: Option[TokenError] = this match
+      case State.Err(err) => Some(err)
+      case _ => None    
+
   class Parser extends StreamTokenParser[Char]:
     override type STATE = State
     override type OUT = Token

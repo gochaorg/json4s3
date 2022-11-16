@@ -5,6 +5,8 @@ import scala.util.Try
 import scala.util.Failure
 import scala.util.Success
 
+class TokenIteratorEt()
+
 /** Итератор по токнам */
 // class TokenIteratorEt(
 //   private var tokenizer: Tokenizer,
