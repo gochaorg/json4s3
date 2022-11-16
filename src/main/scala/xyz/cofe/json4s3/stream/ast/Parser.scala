@@ -112,7 +112,7 @@ object Parser:
           Right((State.Init, Some(AST.JsArray(value))))
         case State.ArrExpectValue(arr, parent) =>
           // добавление элемента в родительский массив и переход к запятой
-          Right((State.ArrExpectComma(arr ++ value,parent), None))
+          Right((State.ArrExpectComma(arr :+ AST.JsArray(value),parent), None))
         case State.ObjExpFieldValue(fieldName, fields, parent) =>
           // добавление элемента в объект и переход к запятой
           Right(( State.ObjExpectComma( fields + (fieldName -> (AST.JsArray(value))), parent), None ))
