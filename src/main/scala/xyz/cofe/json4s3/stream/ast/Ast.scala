@@ -20,10 +20,15 @@ enum AST:
   case JsObj( value:List[(String,AST)] )
 
   /** Возвращает лексемы представляющее данное дерево */
-  def tokens:List[Token] = 
-    this.tokens0(AST.GenToken(path=List(this)))
+  def tokens(using formatting:FormattingJson):List[Token] = 
+    this.tokens0(
+      AST.GenToken(
+        path = List(this),
+      )
+    )
 
-  private def tokens0(state:AST.GenToken):List[Token] = this match
+  /** Генерирует Json лексемы */
+  private def tokens0(state:AST.GenToken)(using fmt:FormattingJson):List[Token] = this match
     case AST.JsStr(value) => List(Token.Str(value))
     case AST.JsFloat(value) => List(Token.FloatNumber(value))
     case AST.JsInt(value) => List(Token.IntNumber(value))
@@ -33,65 +38,85 @@ enum AST:
       if(value) "true" else "false"
     ))
     case AST.JsArray(value) => 
-      if value.isEmpty then List(Token.OpenSuqare, Token.CloseSuqare)
-      else if value==List(JsArray(List())) then List(Token.OpenSuqare, Token.OpenSuqare, Token.CloseSuqare, Token.CloseSuqare)
+      if !fmt.pretty then
+        List(Token.OpenSuqare) ++ value.zipWithIndex.flatMap { case(a,i) => i match
+          case 0 => a.tokens0(state.copy(path = this :: state.path))
+          case _ => List(Token.Comma) ++ a.tokens0(state.copy(path = this :: state.path))
+        } ++ List(Token.CloseSuqare)
       else
-        val items = value.toList.zipWithIndex.flatMap { case (valueAst,idx) => 
-          val last = idx==value.size-1
-          val prefixTokens = 
-            if idx>0
-              then List(Token.WhiteSpace("  "*state.path.length))
-              else List()
+        if value.isEmpty then List(Token.OpenSuqare, Token.CloseSuqare)
+        else if value==List(JsArray(List())) then List(Token.OpenSuqare, Token.OpenSuqare, Token.CloseSuqare, Token.CloseSuqare)
+        else
+          val spaceComma = Option.when(fmt.commaSpace.nonEmpty)(List(Token.WhiteSpace(fmt.commaSpace))).toList.flatten
 
-          val suffixTokens = 
-            if last 
-              then List(Token.WhiteSpace("\n"))
-              else List(Token.Comma, Token.WhiteSpace("\n"))
+          val items = value.toList.zipWithIndex.flatMap { case (valueAst,idx) => 
+            val last = idx==value.size-1
+            val prefixTokens = 
+              if idx>(-1)
+                then List(Token.WhiteSpace(fmt.indent*state.path.length))
+                else List()
 
-          prefixTokens ++ valueAst.tokens0(state.copy(path = this :: state.path)) ++ suffixTokens
-        }
+            val suffixTokens = 
+              if last 
+                then List(Token.WhiteSpace(fmt.endline))
+                else spaceComma ++ List(Token.Comma, Token.WhiteSpace(fmt.endline))
 
-        val prefix = List(Token.OpenSuqare)
-        val suffix = if state.path.length>1 
-          then List(Token.WhiteSpace("  "*(state.path.length-1)), Token.CloseSuqare) 
-          else List(Token.CloseSuqare)
+            prefixTokens ++ valueAst.tokens0(state.copy(path = this :: state.path)) ++ suffixTokens
+          }
 
-        prefix ++ items ++ suffix
+          val prefix = List(Token.OpenSuqare, Token.WhiteSpace(fmt.endline))
+          val suffix = if state.path.length>1 
+            then List(Token.WhiteSpace(fmt.indent*(state.path.length-1)), Token.CloseSuqare) 
+            else List(Token.CloseSuqare)
 
-        // List(Token.OpenSuqare) ++ value.zipWithIndex.flatMap { case(a,i) => i match
-        //   case 0 => a.tokens0(state.copy(path = this :: state.path))
-        //   case _ => List(Token.Comma) ++ a.tokens0(state.copy(path = this :: state.path))
-        // } ++ List(Token.CloseSuqare)
+          prefix ++ items ++ suffix
 
     case AST.JsObj(value) => 
-      if value.isEmpty then
-        List(Token.OpenBrace, Token.CloseBrace)
+      if !fmt.pretty then
+        List(Token.OpenBrace) ++
+        value.zipWithIndex.flatMap { case (((keyStr,valueAst),idx)) => 
+          ( if idx>0 then List(Token.Comma) else List() ) ++
+          List(Token.Str(keyStr),Token.Colon) ++ valueAst.tokens0(state.copy(path = this::state.path))
+        } :+
+        Token.CloseBrace
       else
-        List(Token.OpenBrace) ++ 
-        List(Token.WhiteSpace("\n")) ++
-        value.zipWithIndex.flatMap { case( ((keyStr,valueAst),idx) ) => 
-          val prefixTokens = List(Token.WhiteSpace("  "*state.path.length))
-          val last = idx==value.size-1
-          val suffixTokens = 
-            if last then 
-              List(Token.WhiteSpace("\n")) 
-            else 
-              List(Token.Comma,Token.WhiteSpace("\n"))
+        if value.isEmpty then
+          List(Token.OpenBrace, Token.CloseBrace)
+        else
+          val beforeColon = Option.when(fmt.beforeColon.nonEmpty)(List(Token.WhiteSpace(fmt.beforeColon))).toList.flatten
+          val afterColon = Option.when(fmt.afterColon.nonEmpty)(List(Token.WhiteSpace(fmt.afterColon))).toList.flatten
+          val spaceComma = Option.when(fmt.commaSpace.nonEmpty)(List(Token.WhiteSpace(fmt.commaSpace))).toList.flatten
 
-          prefixTokens ++ 
-          List(Token.Str(keyStr), Token.Colon) ++ 
-          valueAst.tokens0(state.copy(path = this :: state.path)) ++
-          suffixTokens
-        } ++
-        ( if state.path.length>1 
-            then List(Token.WhiteSpace("  "*(state.path.length-1))) 
-            else List() 
-        ) ++
-        List(Token.CloseBrace)
+          List(Token.OpenBrace) ++ 
+          List(Token.WhiteSpace(fmt.endline)) ++
+          value.zipWithIndex.flatMap { case( ((keyStr,valueAst),idx) ) => 
+            val prefixTokens = List(Token.WhiteSpace(fmt.indent*state.path.length))
+            val last = idx==value.size-1
+            val suffixTokens = 
+              if last then 
+                List(Token.WhiteSpace(fmt.endline)) 
+              else 
+                spaceComma ++ List(Token.Comma,Token.WhiteSpace(fmt.endline))
+
+            prefixTokens ++ 
+            List(Token.Str(keyStr)) ++ beforeColon ++ List(Token.Colon) ++ afterColon ++
+            valueAst.tokens0(state.copy(path = this :: state.path)) ++
+            suffixTokens
+          } ++
+          ( if state.path.length>1 
+              then List(Token.WhiteSpace(fmt.indent*(state.path.length-1))) 
+              else List() 
+          ) ++
+          List(Token.CloseBrace)
   
   /** Возвращает json представление */
-  def json:String = 
+  def json(using formatting:FormattingJson):String =
+    given fmt : FormattingJson = formatting
     val sb = new StringBuilder
     tokens.foreach { t => sb.append(t.json) }
     sb.toString()
-  
+
+  /** Возвращает json представление */
+  def toJson(formatting:FormattingJson):String =
+    given fmt : FormattingJson = formatting
+    json

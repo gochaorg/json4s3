@@ -53,9 +53,15 @@ class PrettyTest extends munit.FunSuite:
     val jsTree = 
       jsTreeEt.map(_._1).getOrElse { throw new Error("parse fail") }
 
-    println(jsTree.json)
+    implicit val fmt = FormattingJson
+      .pretty(true)
+      // .afterColon("")
+      // .commaSpace("")
 
-    Parser.parse(Tokenizer.parse(jsTree.json).getOrElse {
+    val json = jsTree.json
+    println(json)
+
+    Parser.parse(Tokenizer.parse(json).getOrElse {
       throw new Error()
     }) match
       case Left(err) => fail(err)
