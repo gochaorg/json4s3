@@ -406,3 +406,36 @@ class ParserTest extends munit.FunSuite:
       )
     ))
   }
+
+  val json_obj3 = "{a:[[]]}"
+  test(s"json {a:[[]]}") {
+    println("="*40)
+    println(s"json $json_obj3")
+
+    val tokens = Tokenizer.parse(json_obj3).getOrElse(List())
+    println("tokens:")
+    tokens.map { t => "  "+t }.foreach(println)
+
+    val result = 
+      tokens
+      .foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
+        sum.flatMap { case (state, _) => 
+          val res = Parser.accept(state,tok)
+          println(s"parse $tok => $res")
+          res
+        }
+      }
+    
+    assert(result.isRight)
+    
+    val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
+    assert(resultJsOpt.isDefined)
+
+    assert( resultJsOpt.get == AST.JsObj(
+      Map(
+        "a"->AST.JsArray(
+          List(AST.JsArray(List()))
+        ), 
+      )
+    ))
+  }

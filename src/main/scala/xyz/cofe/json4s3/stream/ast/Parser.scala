@@ -58,44 +58,44 @@ object Parser:
 
     // SLComment | MLComment | WhiteSpace  -> ArrExpectValue skip
     //                                     -> Init( current )     -> ArrExpectComma
-    case ArrExpectValue( value:List[AST], parent:Option[State]=None ) extends State with ArrayOps
+    case ArrExpectValue( value:List[AST], parent:Option[State] ) extends State with ArrayOps
 
     // SLComment | MLComment | WhiteSpace  -> ArrExpectComma
     // Comma       -> ArrAfterComma
     // CloseSquare -> pop
     //             -> Err
-    case ArrExpectComma( value:List[AST], parent:Option[State]=None ) extends State with ArrayOps
+    case ArrExpectComma( value:List[AST], parent:Option[State] ) extends State with ArrayOps
 
     // SLComment | MLComment | WhiteSpace  -> ArrAfterComma
     // CloseSquare -> pop
     //             -> ArrExpectValue( current ) -> ArrExpectComma
     //             -> Err
-    case ArrAfterComma( value:List[AST], parent:Option[State]=None ) extends State with ArrayOps
+    case ArrAfterComma( value:List[AST], parent:Option[State] ) extends State with ArrayOps
 
     // SLComment | MLComment | WhiteSpace  -> ArrAfterComma
     // Identifier | Str -> ObjAfterFieldName
     //                  -> Err
-    case ObjExpFieldName( value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
+    case ObjExpFieldName( value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace  -> ObjExpFieldValue
     // Colom -> ObjExpFieldValue
     //       -> Err
-    case ObjAfterFieldName( fieldName:String, value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
+    case ObjAfterFieldName( fieldName:String, value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace -> ObjExpFieldValue skip
     //                                    -> Init( current )       -> ObpExpComma
-    case ObjExpFieldValue( fieldName:String, value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
+    case ObjExpFieldValue( fieldName:String, value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace -> ObpExpComma skip
     // Comma                              -> ObjAfterComma
     // CloseBrace                         -> pop
     //                                    -> Err
-    case ObjExpectComma( value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
+    case ObjExpectComma( value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace -> ObjAfterComma skip
     // CloseBrace                         -> pop
     //                                    -> ObjExpFieldName( current )
-    case ObjAfterComma( value:Map[String,AST], parent:Option[State]=None ) extends State with ObjOps
+    case ObjAfterComma( value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
 
   trait ArrayOps:
     def value:List[AST]

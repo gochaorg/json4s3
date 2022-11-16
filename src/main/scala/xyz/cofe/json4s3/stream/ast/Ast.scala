@@ -33,10 +33,40 @@ enum AST:
       if(value) "true" else "false"
     ))
     case AST.JsArray(value) => 
-      List(Token.OpenSuqare) ++ value.zipWithIndex.flatMap { case(a,i) => i match
-        case 0 => a.tokens0(state.copy(path = this :: state.path))
-        case _ => List(Token.Comma) ++ a.tokens0(state.copy(path = this :: state.path))
-       } ++ List(Token.CloseSuqare)
+      if value.isEmpty 
+        then 
+          println(s"empty arr $state")
+          List(Token.OpenSuqare, Token.CloseSuqare)
+      else
+        val items = value.toList.zipWithIndex.flatMap { case (valueAst,idx) => 
+          val last = idx==value.size-1
+          val prefixTokens = 
+            if idx>0
+              then List(Token.WhiteSpace("  "*state.path.length))
+              else List()
+
+          val suffixTokens = 
+            if last 
+              then List(Token.WhiteSpace("\n"))
+              else List(Token.Comma, Token.WhiteSpace("\n"))
+
+          prefixTokens ++ valueAst.tokens0(state.copy(path = this :: state.path)) ++ suffixTokens
+        }
+
+        val prefix = List(Token.OpenSuqare)
+        val suffix = if state.path.length>1 
+          then List(Token.WhiteSpace("  "*(state.path.length-1)), Token.CloseSuqare) 
+          else List(Token.CloseSuqare)
+
+        val result = prefix ++ items ++ suffix
+
+        println(s"arr $state $result")
+        result
+
+        // List(Token.OpenSuqare) ++ value.zipWithIndex.flatMap { case(a,i) => i match
+        //   case 0 => a.tokens0(state.copy(path = this :: state.path))
+        //   case _ => List(Token.Comma) ++ a.tokens0(state.copy(path = this :: state.path))
+        // } ++ List(Token.CloseSuqare)
 
     case AST.JsObj(value) => 
       if value.isEmpty then
