@@ -89,7 +89,7 @@ class TokenizerRandomTest extends munit.FunSuite:
         //println("actual")
         //actual.map(t => "  "+t.toString().replace("\r","\\r").replace("\n","\\n")).foreach(println)
 
-        fail(err)
+        fail(err.toString())
       case Right(actualTokens) =>
         println(s"json ${jsonString.replace("\r","\\r").replace("\n","\\n")}")
         

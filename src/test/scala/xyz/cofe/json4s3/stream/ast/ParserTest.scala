@@ -76,7 +76,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -97,7 +97,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -120,7 +120,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -144,7 +144,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -167,7 +167,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -193,7 +193,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -220,7 +220,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -250,7 +250,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -275,7 +275,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -298,7 +298,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -321,7 +321,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -350,7 +350,7 @@ class ParserTest extends munit.FunSuite:
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
         println(s"parse $tok => $res")
-        res
+        res.left.map(_.toString())
       }
     }
     
@@ -385,7 +385,7 @@ class ParserTest extends munit.FunSuite:
         sum.flatMap { case (state, _) => 
           val res = Parser.accept(state,tok)
           println(s"parse $tok => $res")
-          res
+          res.left.map(_.toString())
         }
       }
     
@@ -422,7 +422,7 @@ class ParserTest extends munit.FunSuite:
         sum.flatMap { case (state, _) => 
           val res = Parser.accept(state,tok)
           println(s"parse $tok => $res")
-          res
+          res.left.map(_.toString())
         }
       }
     

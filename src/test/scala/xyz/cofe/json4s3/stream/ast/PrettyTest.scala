@@ -25,7 +25,7 @@ class PrettyTest extends munit.FunSuite:
     Parser.parse(Tokenizer.parse(jsTree.json).getOrElse {
       throw new Error()
     }) match
-      case Left(err) => fail(err)
+      case Left(err) => fail(err.toString())
       case Right(value) =>    
   }
 
@@ -64,6 +64,6 @@ class PrettyTest extends munit.FunSuite:
     Parser.parse(Tokenizer.parse(json).getOrElse {
       throw new Error()
     }) match
-      case Left(err) => fail(err)
+      case Left(err) => fail(err.toString())
       case Right(value) =>    
   }
