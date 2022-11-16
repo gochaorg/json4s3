@@ -1,5 +1,8 @@
 package xyz.cofe.json4s3.stream.token
 
+import xyz.cofe.json4s3.errors._
+import xyz.cofe.json4s3.errors.TokenError._
+
 /**
   * Парсинг строки
   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types
@@ -22,7 +25,7 @@ object string:
     // Init - " -> SimpleChar
     // Init -> Err
     case Init extends State
-    case Err extends State
+    case Err( err:TokenError ) extends State
 
     // SimpleChar - quoteChar -> Finish
     // SimpleChar - \         -> EscStart
@@ -71,7 +74,7 @@ object string:
     case Finish( decoded:String ) extends State
 
     override def isError: Boolean = this match
-      case State.Err => true
+      case _:State.Err => true
       case _ => false
 
     override def isReady: Boolean = this match
@@ -79,13 +82,13 @@ object string:
       case _ => false
 
     override def isAcceptable: Boolean = this match
-      case State.Err => false
+      case _:State.Err => false
       case _:State.Finish => false
       case _ => true
 
     override def isConsumed: Boolean = this match
       case State.Init => false
-      case State.Err => false
+      case _:State.Err => false
       case State.SimpleChar(quoteChar, decoded) => true
       case State.EscStart(quoteChar, decoded) => true
       case State.EscHex(quoteChar, decoded, hexDigit) => true
@@ -132,8 +135,8 @@ object string:
       case State.Init => char match
         case '\'' => State.SimpleChar(char, new StringBuilder() )
         case '"' => State.SimpleChar(char, new StringBuilder() )
-        case _ => State.Err
-      case State.Err =>  State.Err
+        case _ => State.Err(notMatchInput(this,state,char,"single or double quotes"))
+      case s:State.Err =>  s
       case s@State.SimpleChar(quoteChar, decoded) => char match
         case _ if quoteChar==char => State.Finish(decoded.toString())
         case '\\' => State.EscStart(quoteChar, decoded)
@@ -155,7 +158,7 @@ object string:
             case '\'' => decoded.append("\'")
             case _ =>
           State.SimpleChar(quoteChar,decoded)
-        case _ => State.Err
+        case _ => State.Err(notMatchInput(this,state,char,"digits(0..7) or x or u or b,f,n,r,t,v or single or double quotes"))
       case State.EscHex(quoteChar, decoded, hexDigit) => 
         val digit = hex(char)
         char match
@@ -171,7 +174,7 @@ object string:
           case '{' => State.EscUnicode5digit(quoteChar,decoded,List())
           case _ if digit.isDefined =>
             State.EscUnicode4digit(quoteChar,decoded,List(digit.get))
-          case _ => State.Err
+          case _ => State.Err(notMatchInput(this,state,char,"{ or hex digit"))
       case State.EscUnicode4digit(quoteChar,decoded,hexDigits) =>
         val digit = hex(char)
         if hexDigits.size < 3 && digit.isDefined then
@@ -182,7 +185,7 @@ object string:
           java.lang.Character.toString(chrFromDigit).foreach { c => decoded.append(c) }
           State.SimpleChar(quoteChar, decoded)
         else
-          State.Err
+          State.Err(notMatchInput(this,state,char,"{ or hex digit"))
       case State.EscUnicode5digit(quoteChar,decoded,hexDigits) =>
         val digit = hex(char)
         if hexDigits.size < 5 && digit.isDefined then
@@ -193,7 +196,7 @@ object string:
           java.lang.Character.toString(chrFromDigit).foreach { c => decoded.append(c) }
           State.SimpleChar(quoteChar, decoded)
         else
-          State.Err
+          State.Err(notMatchInput(this,state,char,"} or hex digit"))
       case State.EscZero(quoteChar, decoded) => char match
         case '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7' => 
           State.EscOct(quoteChar,decoded,List(char))
@@ -214,7 +217,7 @@ object string:
           val num = digits(0)*8*8 + digits(1)*8 + digits(2)
           java.lang.Character.toString(num).foreach( c => decoded.append(c) )
           State.SimpleChar(quoteChar,decoded)
-        case _ => State.Err
+        case _ => State.Err(notMatchInput(this,state,char,"0..7"))
       case s:State.Finish => s
     
     override def end(state: State): State = state match
@@ -227,5 +230,5 @@ object string:
       case State.EscUnicode5digit(_,decoded,_) => State.Finish(decoded.toString())
       case State.EscZero(_,decoded) => State.Finish(decoded.toString())
       case State.EscOct(_,decoded,_) => State.Finish(decoded.toString())
-      case _ => State.Err
+      case _ => State.Err(notReady(this,state))
     

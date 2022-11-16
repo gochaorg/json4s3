@@ -1,5 +1,8 @@
 package xyz.cofe.json4s3.stream.token
 
+import xyz.cofe.json4s3.errors._
+import xyz.cofe.json4s3.errors.TokenError._
+
 /** Распознование чисел 
  * 
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types
@@ -143,10 +146,11 @@ object number:
       expoPositive:Boolean=true, 
       positive:Boolean=true 
     ) extends State
-    case Err extends State
+
+    case Err( err:TokenError ) extends State
 
     override def isAcceptable: Boolean = this match
-      case State.Err => false
+      case _:State.Err => false
       case _:State.Finish => false
       case _:State.FinishConsumed => false
       case _ => true
@@ -166,7 +170,7 @@ object number:
       case _ => false
     
     override def isError: Boolean = this match
-      case State.Err => true
+      case _:State.Err => true
       case _ => false
     override def isConsumed: Boolean = this match
       case _:State.FinishConsumed => true
@@ -327,13 +331,13 @@ object number:
         case '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => 
           State.DecPart(positive = true,digits=List(digit(char).get))
         case '.' => State.FloatExpectFraction(positive = true)
-        case _ => State.Err
+        case _ => State.Err(notMatchInput(this,state,char,"- or digits or ."))
       case State.DecStart(positive) => char match
         case '0' => State.DecPref(positive = positive)
         case '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => 
           State.DecPart(digits=List(digit(char).get),positive=positive)
         case '.' => State.FloatExpectFraction(positive = positive)
-        case _ => State.Err
+        case _ => State.Err(notMatchInput(this,state,char,"digits or ."))
       case State.DecPref(positive) => char match
         case 'x' | 'X' => State.HexInt(positive=positive)
         case 'b' | 'B' => State.BinInt(positive=positive)
@@ -400,7 +404,7 @@ object number:
         case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
           State.FloatFraction(dec, List(digit(char).get), positive)
         case _ =>
-          State.Err
+          State.Err(notMatchInput(this,state,char,"digits"))
       case State.ExpoSignOpt(dec, fraction, positive) => char match
         case '+'  =>
           State.Expo(dec, fraction, List(), expoPositive=true, positive)
@@ -409,7 +413,7 @@ object number:
         case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
           State.Expo(dec, fraction, List(digit(char).get), expoPositive=true, positive)
         case _ =>
-          State.Err
+          State.Err(notMatchInput(this,state,char,"digits or + or -"))
       case State.Expo(dec, fraction, expo, expoPositive, positive) => char match
         case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
           State.Expo(dec, fraction, expo :+ digit(char).get, expoPositive, positive)
@@ -421,11 +425,11 @@ object number:
           )
       case s:State.Finish => s
       case s:State.FinishConsumed => s
-      case State.Err => State.Err
+      case s:State.Err => s
     
     override def end(state: State): State = state match
-      case State.Init => State.Err
-      case State.DecStart(positive) => State.Err
+      case State.Init => State.Err(NoInput())
+      case State.DecStart(positive) => State.Err(NoInput())
       case State.DecPref(positive) =>                                 State.Finish(base=10, float=false, big=false, dec=List(0), fraction=List(), expo=List(), expoPositive=true, positive=true)
       case State.DecPart(digits, positive) =>                         State.Finish(base=10, float=false, big=false, dec=digits,  fraction=List(), expo=List(), expoPositive=true, positive=positive)
       case State.HexInt(digits, positive)  =>                         State.Finish(base=16, float=false, big=false, dec=digits,  fraction=List(), expo=List(), expoPositive=true, positive=positive)
@@ -438,5 +442,5 @@ object number:
       case State.Expo(dec, fraction, expo, expoPositive, positive) => State.Finish(base=10, float=true,  big=false, dec=dec,     fraction=fraction, expo=expo, expoPositive=expoPositive, positive=positive)
       case s:State.Finish => s
       case s:State.FinishConsumed => s
-      case State.Err => State.Err
+      case s:State.Err => s
     

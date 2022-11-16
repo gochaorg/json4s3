@@ -1,5 +1,7 @@
 package xyz.cofe.json4s3.stream.token
 
+import xyz.cofe.json4s3.errors._
+
 object Tokenizer:
   enum State:
     // '-' -> NumParse
@@ -34,6 +36,12 @@ class Tokenizer:
       !state.isError && !state.isAcceptable && state.isReady
     }
 
+  /**
+    * Парсинг строки
+    *
+    * @param string строка
+    * @return лексеммы
+    */
   def parse(string:String):Either[String,List[Token]] = {
     string.foldLeft( Right( (init, List()) ):Either[String,(State,List[Token])] ){ case(sum,chr) => 
       sum.flatMap { case (state, tokens) =>

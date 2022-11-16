@@ -1,5 +1,8 @@
 package xyz.cofe.json4s3.stream.token
 
+import xyz.cofe.json4s3.errors._
+import xyz.cofe.json4s3.errors.TokenError._
+
 /** 
  * комментарий js
  * 
@@ -36,12 +39,12 @@ object comment:
     // -> ExpectML0
     case ExpectML1( buffer:StringBuilder ) extends State
     
-    case Err extends State
+    case Err( err:TokenError ) extends State
     case Finish( buffer:StringBuilder, singleLine:Boolean ) extends State
     case FinishConsumed( buffer:StringBuilder, singleLine:Boolean ) extends State
 
     override def isAcceptable: Boolean = this match
-      case State.Err => false
+      case State.Err(_) => false
       case _:State.Finish => false
       case _:State.FinishConsumed => false
       case _ => true
@@ -60,7 +63,7 @@ object comment:
       case _ => false
     
     override def isError: Boolean = this match
-      case State.Err => true
+      case State.Err(_) => true
       case _ => false    
 
   class Parser() extends StreamTokenParser[Char]:
@@ -79,7 +82,7 @@ object comment:
         Some(Token.MLComment(buffer.toString()))
       case State.ExpectML1(buffer) =>
         Some(Token.MLComment(buffer.toString()))
-      case State.Err => None
+      case State.Err(_) => None
       case State.Finish(buffer,singleLine) =>
         Some(if singleLine then
           Token.SLComment(buffer.toString())
@@ -96,11 +99,11 @@ object comment:
     override def accept(state: State, char: Char): State = state match
       case State.Init => char match
         case '/' => State.SelectSLML
-        case _ => State.Err
+        case _ => State.Err(notMatchInput(this,state,char,"/"))
       case State.SelectSLML => char match
         case '/' => State.ExpectEOL(new StringBuilder)
         case '*' => State.ExpectML0(new StringBuilder)
-        case _ => State.Err
+        case _ => State.Err(notMatchInput(this,state,char,"/ or *"))
       case s@State.ExpectEOL(buffer) => char match
         case '\r' => 
           buffer.append(char)
@@ -115,7 +118,7 @@ object comment:
         case '\n' => 
           buffer.append(char)
           State.FinishConsumed(buffer,singleLine = true)
-        case _ => State.Err
+        case _ => State.Err(notMatchInput(this,state,char,"\\n"))
       case s@State.ExpectML0(buffer) => char match
         case '*' => 
           State.ExpectML1(buffer)
@@ -129,18 +132,18 @@ object comment:
           buffer.append('*')
           buffer.append(char)
           State.ExpectML0(buffer)
-      case State.Err => State.Err
+      case s:State.Err => s
       case s:State.Finish => s
       case s:State.FinishConsumed => s
     
     override def end(state: State): State = state match
-      case State.Init => State.Err
-      case State.SelectSLML => State.Err
+      case State.Init => State.Err(NoInput())
+      case State.SelectSLML => State.Err(notReady(this,state))
       case State.ExpectEOL(buffer) => State.Finish(buffer,singleLine = true)
       case State.ExpectN(buffer) => State.Finish(buffer,singleLine = true)
       case State.ExpectML0(buffer) => State.Finish(buffer,singleLine = false)
       case State.ExpectML1(buffer) => State.Finish(buffer,singleLine = false)
-      case State.Err => State.Err
+      case s:State.Err => s
       case s:State.Finish => s
       case s:State.FinishConsumed => s
     
