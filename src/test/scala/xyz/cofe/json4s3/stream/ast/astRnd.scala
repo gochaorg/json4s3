@@ -26,9 +26,9 @@ object astRnd {
           case _ =>
             AST.JsArray( (0 until opt.width).map { _ => js(opt.copy(deep=opt.deep-1, level=opt.level+1)) }.toList )
         case 1 => opt.deep match
-          case _ if opt.deep<=0 => AST.JsObj(Map())
+          case _ if opt.deep<=0 => AST.JsObj(List())
           case _ =>
-            AST.JsObj( (0 until opt.width).map { _ => rnd.string(1,5) -> js(opt.copy(deep=opt.deep-1, level=opt.level+1)) }.toMap )
+            AST.JsObj( (0 until opt.width).map { _ => rnd.string(1,5) -> js(opt.copy(deep=opt.deep-1, level=opt.level+1)) }.toList )
         case 2 => str
         case 3 => int
         case 4 => float

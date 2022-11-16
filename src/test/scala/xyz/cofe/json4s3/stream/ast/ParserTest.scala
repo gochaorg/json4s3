@@ -176,7 +176,7 @@ class ParserTest extends munit.FunSuite:
     val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
     assert(resultJsOpt.isDefined)
 
-    assert( resultJsOpt.get == AST.JsObj(Map()) )
+    assert( resultJsOpt.get == AST.JsObj(List()) )
   }
 
   test("object {'a':1}") {
@@ -202,7 +202,7 @@ class ParserTest extends munit.FunSuite:
     val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
     assert(resultJsOpt.isDefined)
 
-    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1))) )
+    assert( resultJsOpt.get == AST.JsObj(List("a"->AST.JsInt(1))) )
   }
 
   test("object {'a':1,}") {
@@ -229,7 +229,7 @@ class ParserTest extends munit.FunSuite:
     val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
     assert(resultJsOpt.isDefined)
 
-    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1))) )
+    assert( resultJsOpt.get == AST.JsObj(List("a"->AST.JsInt(1))) )
   }
 
   test("object {'a':1,'b':2}") {
@@ -259,7 +259,7 @@ class ParserTest extends munit.FunSuite:
     val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
     assert(resultJsOpt.isDefined)
 
-    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1), "b"->AST.JsInt(2))) )
+    assert( resultJsOpt.get == AST.JsObj(List("a"->AST.JsInt(1), "b"->AST.JsInt(2))) )
   }
 
   test("json {'a':1,'b':2}") {
@@ -284,7 +284,7 @@ class ParserTest extends munit.FunSuite:
     val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
     assert(resultJsOpt.isDefined)
 
-    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1), "b"->AST.JsInt(2))) )
+    assert( resultJsOpt.get == AST.JsObj(List("a"->AST.JsInt(1), "b"->AST.JsInt(2))) )
   }
 
   test("json {'a':1,'b':[]}") {
@@ -307,7 +307,7 @@ class ParserTest extends munit.FunSuite:
     val (state,resultJsOpt) = result.getOrElse( (Parser.State.Init, None) )
     assert(resultJsOpt.isDefined)
 
-    assert( resultJsOpt.get == AST.JsObj(Map("a"->AST.JsInt(1), "b"->AST.JsArray(List()))) )
+    assert( resultJsOpt.get == AST.JsObj(List("a"->AST.JsInt(1), "b"->AST.JsArray(List()))) )
   }
 
   test("json {'a':1,'b':[1]}") {
@@ -331,7 +331,7 @@ class ParserTest extends munit.FunSuite:
     assert(resultJsOpt.isDefined)
 
     assert( resultJsOpt.get == AST.JsObj(
-      Map(
+      List(
         "a"->AST.JsInt(1), 
         "b"->AST.JsArray(List(AST.JsInt(1)))
       )
@@ -360,11 +360,11 @@ class ParserTest extends munit.FunSuite:
     assert(resultJsOpt.isDefined)
 
     assert( resultJsOpt.get == AST.JsObj(
-      Map(
+      List(
         "a"->AST.JsInt(1), 
         "b"->AST.JsArray(List(
           AST.JsInt(1),
-          AST.JsObj(Map())
+          AST.JsObj(List())
         ))
       )
     ))
@@ -395,11 +395,11 @@ class ParserTest extends munit.FunSuite:
     assert(resultJsOpt.isDefined)
 
     assert( resultJsOpt.get == AST.JsObj(
-      Map(
+      List(
         "a"->AST.JsInt(1), 
         "b"->AST.JsArray(List(
           AST.JsInt(2),
-          AST.JsObj(Map(
+          AST.JsObj(List(
             "c"->AST.JsInt(3)
           ))
         ))
@@ -432,7 +432,7 @@ class ParserTest extends munit.FunSuite:
     assert(resultJsOpt.isDefined)
 
     assert( resultJsOpt.get == AST.JsObj(
-      Map(
+      List(
         "a"->AST.JsArray(
           List(AST.JsArray(List()))
         ), 

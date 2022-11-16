@@ -17,7 +17,7 @@ enum AST:
   case JsNull
   case JsBool( value:Boolean )
   case JsArray( value:Seq[AST] )
-  case JsObj( value:Map[String,AST] )
+  case JsObj( value:List[(String,AST)] )
 
   /** Возвращает лексемы представляющее данное дерево */
   def tokens:List[Token] = 

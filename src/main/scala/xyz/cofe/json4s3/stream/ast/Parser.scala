@@ -75,34 +75,34 @@ object Parser:
     // SLComment | MLComment | WhiteSpace  -> ArrAfterComma
     // Identifier | Str -> ObjAfterFieldName
     //                  -> Err
-    case ObjExpFieldName( value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
+    case ObjExpFieldName( value:List[(String,AST)], parent:Option[State] ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace  -> ObjExpFieldValue
     // Colom -> ObjExpFieldValue
     //       -> Err
-    case ObjAfterFieldName( fieldName:String, value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
+    case ObjAfterFieldName( fieldName:String, value:List[(String,AST)], parent:Option[State] ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace -> ObjExpFieldValue skip
     //                                    -> Init( current )       -> ObpExpComma
-    case ObjExpFieldValue( fieldName:String, value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
+    case ObjExpFieldValue( fieldName:String, value:List[(String,AST)], parent:Option[State] ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace -> ObpExpComma skip
     // Comma                              -> ObjAfterComma
     // CloseBrace                         -> pop
     //                                    -> Err
-    case ObjExpectComma( value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
+    case ObjExpectComma( value:List[(String,AST)], parent:Option[State] ) extends State with ObjOps
 
     // SLComment | MLComment | WhiteSpace -> ObjAfterComma skip
     // CloseBrace                         -> pop
     //                                    -> ObjExpFieldName( current )
-    case ObjAfterComma( value:Map[String,AST], parent:Option[State] ) extends State with ObjOps
+    case ObjAfterComma( value:List[(String,AST)], parent:Option[State] ) extends State with ObjOps
 
   trait ArrayOps:
     def value:List[AST]
     def toJsArray:AST.JsArray = AST.JsArray(value)
 
   trait ObjOps:
-    def value:Map[String,AST]
+    def value:List[(String,AST)]
     def toJsObj:AST.JsObj = AST.JsObj(value)
 
   extension (parentOpt:Option[State])
@@ -115,10 +115,10 @@ object Parser:
           Right((State.ArrExpectComma(arr :+ AST.JsArray(value),parent), None))
         case State.ObjExpFieldValue(fieldName, fields, parent) =>
           // добавление элемента в объект и переход к запятой
-          Right(( State.ObjExpectComma( fields + (fieldName -> (AST.JsArray(value))), parent), None ))
+          Right(( State.ObjExpectComma( fields :+ (fieldName -> (AST.JsArray(value))), parent), None ))
         case _ =>
           Left(s"fail state=$s accept $token")
-    def acceptObject(state:State, token:Token, value:Map[String,AST]):Either[String,(State,Option[AST])] =
+    def acceptObject(state:State, token:Token, value:List[(String,AST)]):Either[String,(State,Option[AST])] =
       parentOpt.getOrElse(State.Init) match
         case State.Init => 
           Right((State.Init, Some(AST.JsObj(value))))
@@ -130,7 +130,7 @@ object Parser:
         case State.ObjExpFieldValue(fieldName, fields, parent) =>
           Right((
             State.ObjExpectComma(
-              fields + (fieldName -> AST.JsObj(value))
+              fields :+ (fieldName -> AST.JsObj(value))
               ,parent
             ),
             None
@@ -171,7 +171,7 @@ object Parser:
         case "null" =>  Right((State.Init,Some(AST.JsNull)))
         case _ => Left(s"undefined identifier $text")
       case Token.OpenSuqare => Right((State.ArrExpectValue(List(),Some(state))), None)
-      case Token.OpenBrace => Right((State.ObjExpFieldName(Map(),Some(state)), None))
+      case Token.OpenBrace => Right((State.ObjExpFieldName(List(),Some(state)), None))
       case Token.WhiteSpace(_) => Right((State.Init,None))
       case Token.SLComment(_) => Right((State.Init,None))
       case Token.MLComment(_) => Right((State.Init,None))
@@ -198,7 +198,7 @@ object Parser:
         Right(( State.ArrExpectValue(List(),Some(state)),None ))
       case Token.OpenBrace =>
         Right((
-          State.ObjExpFieldName(Map(),Some(state)),
+          State.ObjExpFieldName(List(),Some(state)),
           None
         ))
 
@@ -263,17 +263,17 @@ object Parser:
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
         Right(state,None)
       case Token.Str(text) => 
-        Right(( State.ObjExpectComma(value+(fieldName->AST.JsStr(text)),parentOpt) , None ))
+        Right(( State.ObjExpectComma(value:+(fieldName->AST.JsStr(text)),parentOpt) , None ))
       case Token.IntNumber(num) =>
-        Right(( State.ObjExpectComma(value+(fieldName->AST.JsInt(num)),parentOpt) , None ))
+        Right(( State.ObjExpectComma(value:+(fieldName->AST.JsInt(num)),parentOpt) , None ))
       case Token.BigNumber(num) =>
-        Right(( State.ObjExpectComma(value+(fieldName->AST.JsBig(num)),parentOpt) , None ))
+        Right(( State.ObjExpectComma(value:+(fieldName->AST.JsBig(num)),parentOpt) , None ))
       case Token.FloatNumber(num) =>
-        Right(( State.ObjExpectComma(value+(fieldName->AST.JsFloat(num)),parentOpt) , None ))
+        Right(( State.ObjExpectComma(value:+(fieldName->AST.JsFloat(num)),parentOpt) , None ))
       case Token.Identifier(text) => text match
-        case "true" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsBool(true)),parentOpt) , None ))
-        case "false" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsBool(false)),parentOpt) , None ))
-        case "null" => Right(( State.ObjExpectComma(value+(fieldName->AST.JsNull),parentOpt) , None ))
+        case "true" => Right(( State.ObjExpectComma(value:+(fieldName->AST.JsBool(true)),parentOpt) , None ))
+        case "false" => Right(( State.ObjExpectComma(value:+(fieldName->AST.JsBool(false)),parentOpt) , None ))
+        case "null" => Right(( State.ObjExpectComma(value:+(fieldName->AST.JsNull),parentOpt) , None ))
       case Token.OpenSuqare =>
         Right((
           State.ArrExpectValue(List(),Some(state)),
@@ -281,7 +281,7 @@ object Parser:
         ))
       case Token.OpenBrace =>
         Right((
-          State.ObjExpFieldName(Map(),Some(state)),
+          State.ObjExpFieldName(List(),Some(state)),
           None
         ))
       case _ =>
