@@ -67,8 +67,8 @@ class Tokenizer:
         Right( (State.NumParse(parser, st), List()) )
       case '{' => Right((State.Init, List(Token.OpenBrace)))
       case '}' => Right((State.Init, List(Token.CloseBrace)))
-      case '[' => Right((State.Init, List(Token.OpenSuqare)))
-      case ']' => Right((State.Init, List(Token.CloseSuqare)))
+      case '[' => Right((State.Init, List(Token.OpenSquare)))
+      case ']' => Right((State.Init, List(Token.CloseSquare)))
       case ',' => Right((State.Init, List(Token.Comma)))
       case ':' => Right((State.Init, List(Token.Colon)))
       case '"' | '\'' => 

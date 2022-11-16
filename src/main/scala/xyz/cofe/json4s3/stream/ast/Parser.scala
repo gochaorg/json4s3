@@ -191,12 +191,12 @@ object Parser:
         case "false" =>  Right((State.Init,Some(AST.JsBool(false))))
         case "null" =>  Right((State.Init,Some(AST.JsNull)))
         case _ => Left(ParserUndefinedIndentifier(state,token))
-      case Token.OpenSuqare => Right((State.ArrExpectValue(List(),Some(state))), None)
+      case Token.OpenSquare => Right((State.ArrExpectValue(List(),Some(state))), None)
       case Token.OpenBrace => Right((State.ObjExpFieldName(List(),Some(state)), None))
       case Token.WhiteSpace(_) => Right((State.Init,None))
       case Token.SLComment(_) => Right((State.Init,None))
       case Token.MLComment(_) => Right((State.Init,None))
-      case _ => Left(ParserNotMatchInputToken(state,token))
+      case _ => Left(ParserNotMatchInputToken(state,token,Some("Str|IntNumber|BigNumber|FloatNumber|Identifier|OpenSquare|OpenBrace|WhiteSpace|SLComment|MLComment")))
     
     // Ожидание эелемента массива
     case s@State.ArrExpectValue(value,parentOpt) => token match
@@ -215,7 +215,8 @@ object Parser:
           Right(( State.ArrExpectComma( value :+ AST.JsBool(false),parentOpt),None ))
         case "null" =>
           Right(( State.ArrExpectComma(value :+ AST.JsNull,parentOpt),None ))
-      case Token.OpenSuqare =>
+        case _ => Left(ParserUndefinedIndentifier(state,token))
+      case Token.OpenSquare =>
         Right(( State.ArrExpectValue(List(),Some(state)),None ))
       case Token.OpenBrace =>
         Right((
@@ -224,7 +225,7 @@ object Parser:
         ))
 
       // Завершение массива
-      case Token.CloseSuqare =>
+      case Token.CloseSquare =>
         parentOpt.acceptArray(state, token, value)
       case Token.CloseBrace | Token.Comma | Token.Colon =>
         Left(ParserNotMatchInputToken(state,token,Some("CloseBrace | Comma | Colon")))
@@ -237,16 +238,16 @@ object Parser:
         Right(state,None)
       case Token.Comma =>
         Right(( State.ArrAfterComma(value, parentOpt), None ))
-      case Token.CloseSuqare =>
+      case Token.CloseSquare =>
         parentOpt.acceptArray(state, token, value)
       case _ =>
-        Left(ParserNotMatchInputToken(state,token))
+        Left(ParserNotMatchInputToken(state,token,Some("WhiteSpace|SLComment|MLComment|Comma|CloseSquare")))
 
     // Ожидание или закрытие массива или очередного значения
     case s@State.ArrAfterComma(value,parentOpt) => token match
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
         Right(state,None)
-      case Token.CloseSuqare =>
+      case Token.CloseSquare =>
         parentOpt.acceptArray(state, token, value)
       case _ =>
         accept( State.ArrExpectValue(value,parentOpt), token )
@@ -267,7 +268,7 @@ object Parser:
           None
         ))
       case _ =>
-        Left(ParserNotMatchInputToken(state,token))
+        Left(ParserNotMatchInputToken(state,token,Some("WhiteSpace|SLComment|MLComment|Identifier|Str|CloseBrace")))
 
     case s@State.ObjAfterFieldName(fieldName,value,parentOpt) => token match
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
@@ -278,7 +279,7 @@ object Parser:
           None
         ))
       case _ =>
-        Left(ParserNotMatchInputToken(state,token))
+        Left(ParserNotMatchInputToken(state,token,Some("WhiteSpace|SLComment|MLComment|Colon")))
 
     case s@State.ObjExpFieldValue(fieldName,value,parentOpt) => token match
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
@@ -295,7 +296,8 @@ object Parser:
         case "true" => Right(( State.ObjExpectComma(value:+(fieldName->AST.JsBool(true)),parentOpt) , None ))
         case "false" => Right(( State.ObjExpectComma(value:+(fieldName->AST.JsBool(false)),parentOpt) , None ))
         case "null" => Right(( State.ObjExpectComma(value:+(fieldName->AST.JsNull),parentOpt) , None ))
-      case Token.OpenSuqare =>
+        case _ => Left(ParserUndefinedIndentifier(state,token))
+      case Token.OpenSquare =>
         Right((
           State.ArrExpectValue(List(),Some(state)),
           None
@@ -306,7 +308,7 @@ object Parser:
           None
         ))
       case _ =>
-        Left(ParserNotMatchInputToken(state,token))
+        Left(ParserNotMatchInputToken(state,token,Some("WhiteSpace|SLComment|MLComment|Str|IntNumber|BigNumber|FloatNumber|Identifier|OpenSuqare|OpenBrace")))
 
     case s@State.ObjExpectComma(value,parentOpt) => token match
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>
@@ -319,7 +321,7 @@ object Parser:
       case Token.CloseBrace =>
         parentOpt.acceptObject(state,token,value)
       case _ => 
-        Left(ParserNotMatchInputToken(state,token))
+        Left(ParserNotMatchInputToken(state,token,Some("WhiteSpace|SLComment|MLComment|Comma|CloseBrace")))
 
     case s@State.ObjAfterComma(value,parentOpt) => token match
       case Token.WhiteSpace(_) | Token.SLComment(_) | Token.MLComment(_) =>

@@ -36,8 +36,8 @@ class TokenizerRandomTest extends munit.FunSuite:
   def randOneCharToken:Token = irnd(6) match
     case 0 => Token.CloseBrace
     case 1 => Token.OpenBrace
-    case 2 => Token.CloseSuqare
-    case 3 => Token.OpenSuqare
+    case 2 => Token.CloseSquare
+    case 3 => Token.OpenSquare
     case 4 => Token.Comma
     case _ => Token.Colon
 

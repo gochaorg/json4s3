@@ -41,8 +41,8 @@ object oneCharTokens:
       case State.Init => char match
         case '{' => State.Finish(Token.OpenBrace)
         case '}' => State.Finish(Token.CloseBrace)
-        case '[' => State.Finish(Token.OpenSuqare)
-        case ']' => State.Finish(Token.CloseSuqare)
+        case '[' => State.Finish(Token.OpenSquare)
+        case ']' => State.Finish(Token.CloseSquare)
         case ',' => State.Finish(Token.Comma)
         case ':' => State.Finish(Token.Colon)
         case _ => State.Err(notMatchInput(this,state,char,"{ } [ ] , ;"))

@@ -39,13 +39,13 @@ enum AST:
     ))
     case AST.JsArray(value) => 
       if !fmt.pretty then
-        List(Token.OpenSuqare) ++ value.zipWithIndex.flatMap { case(a,i) => i match
+        List(Token.OpenSquare) ++ value.zipWithIndex.flatMap { case(a,i) => i match
           case 0 => a.tokens0(state.copy(path = this :: state.path))
           case _ => List(Token.Comma) ++ a.tokens0(state.copy(path = this :: state.path))
-        } ++ List(Token.CloseSuqare)
+        } ++ List(Token.CloseSquare)
       else
-        if value.isEmpty then List(Token.OpenSuqare, Token.CloseSuqare)
-        else if value==List(JsArray(List())) then List(Token.OpenSuqare, Token.OpenSuqare, Token.CloseSuqare, Token.CloseSuqare)
+        if value.isEmpty then List(Token.OpenSquare, Token.CloseSquare)
+        else if value==List(JsArray(List())) then List(Token.OpenSquare, Token.OpenSquare, Token.CloseSquare, Token.CloseSquare)
         else
           val spaceComma = Option.when(fmt.commaSpace.nonEmpty)(List(Token.WhiteSpace(fmt.commaSpace))).toList.flatten
 
@@ -64,10 +64,10 @@ enum AST:
             prefixTokens ++ valueAst.tokens0(state.copy(path = this :: state.path)) ++ suffixTokens
           }
 
-          val prefix = List(Token.OpenSuqare, Token.WhiteSpace(fmt.endline))
+          val prefix = List(Token.OpenSquare, Token.WhiteSpace(fmt.endline))
           val suffix = if state.path.length>1 
-            then List(Token.WhiteSpace(fmt.indent*(state.path.length-1)), Token.CloseSuqare) 
-            else List(Token.CloseSuqare)
+            then List(Token.WhiteSpace(fmt.indent*(state.path.length-1)), Token.CloseSquare) 
+            else List(Token.CloseSquare)
 
           prefix ++ items ++ suffix
 

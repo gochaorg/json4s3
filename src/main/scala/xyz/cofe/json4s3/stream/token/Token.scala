@@ -17,10 +17,10 @@ enum Token:
   case FloatNumber( val num:Double ) extends Token
 
   /** Квадратная скобка */
-  case OpenSuqare extends Token
+  case OpenSquare extends Token
   
   /** Квадратная скобка */
-  case CloseSuqare extends Token
+  case CloseSquare extends Token
   
   /** Фигурная скобка */
   case OpenBrace extends Token
@@ -86,8 +86,8 @@ enum Token:
     case Token.IntNumber(num) => num.toString()
     case Token.BigNumber(num) => num.toString()+"n"
     case Token.FloatNumber(num) => num.toString()
-    case Token.OpenSuqare => "["
-    case Token.CloseSuqare => "]"
+    case Token.OpenSquare => "["
+    case Token.CloseSquare => "]"
     case Token.OpenBrace => "{"
     case Token.CloseBrace => "}"
     case Token.Comma => ","

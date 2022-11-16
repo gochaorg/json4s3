@@ -70,8 +70,8 @@ class ParserTest extends munit.FunSuite:
 
   test("emptry array") {
     val result = List(
-      Token.OpenSuqare,
-      Token.CloseSuqare,
+      Token.OpenSquare,
+      Token.CloseSquare,
     ).foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
@@ -90,9 +90,9 @@ class ParserTest extends munit.FunSuite:
 
   test("array[ 1 ]") {
     val result = List(
-      Token.OpenSuqare,
+      Token.OpenSquare,
       Token.IntNumber(1),
-      Token.CloseSuqare,
+      Token.CloseSquare,
     ).foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
@@ -111,11 +111,11 @@ class ParserTest extends munit.FunSuite:
 
   test("array[ 1,2 ]") {
     val result = List(
-      Token.OpenSuqare,
+      Token.OpenSquare,
       Token.IntNumber(1),
       Token.Comma,
       Token.IntNumber(2),
-      Token.CloseSuqare,
+      Token.CloseSquare,
     ).foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
@@ -134,12 +134,12 @@ class ParserTest extends munit.FunSuite:
 
   test("array[ 1,2, ]") {
     val result = List(
-      Token.OpenSuqare,
+      Token.OpenSquare,
       Token.IntNumber(1),
       Token.Comma,
       Token.IntNumber(2),
       Token.Comma,
-      Token.CloseSuqare,
+      Token.CloseSquare,
     ).foldLeft( Right((Parser.State.Init,None)):Either[String,(Parser.State,Option[AST])] ){ case (sum,tok) => 
       sum.flatMap { case (state, _) => 
         val res = Parser.accept(state,tok)
