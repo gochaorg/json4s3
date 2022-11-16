@@ -33,10 +33,8 @@ enum AST:
       if(value) "true" else "false"
     ))
     case AST.JsArray(value) => 
-      if value.isEmpty 
-        then 
-          println(s"empty arr $state")
-          List(Token.OpenSuqare, Token.CloseSuqare)
+      if value.isEmpty then List(Token.OpenSuqare, Token.CloseSuqare)
+      else if value==List(JsArray(List())) then List(Token.OpenSuqare, Token.OpenSuqare, Token.CloseSuqare, Token.CloseSuqare)
       else
         val items = value.toList.zipWithIndex.flatMap { case (valueAst,idx) => 
           val last = idx==value.size-1
@@ -58,10 +56,7 @@ enum AST:
           then List(Token.WhiteSpace("  "*(state.path.length-1)), Token.CloseSuqare) 
           else List(Token.CloseSuqare)
 
-        val result = prefix ++ items ++ suffix
-
-        println(s"arr $state $result")
-        result
+        prefix ++ items ++ suffix
 
         // List(Token.OpenSuqare) ++ value.zipWithIndex.flatMap { case(a,i) => i match
         //   case 0 => a.tokens0(state.copy(path = this :: state.path))
