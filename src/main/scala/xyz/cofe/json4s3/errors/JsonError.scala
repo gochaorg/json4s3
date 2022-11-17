@@ -20,10 +20,10 @@ object TokenError:
   def notReady[P <: StreamTokenParser[Char]:ClassTag](parser:P, state:parser.STATE) =
     NotReady(s"data not ready, parser=${summon[ClassTag[P]].runtimeClass.toGenericString()}, state=$state")
 
-sealed trait ParserError extends JsonError
+sealed trait ParserError extends Throwable with JsonError
 case class ParserNotMatchInputToken[S <: PState:ClassTag](state:S, token:Token, expect:Option[String]=None) extends 
   JsonError.NoStackErr(s"did not match expected token $token, state=${summon[ClassTag[S]].runtimeClass.toGenericString()}",null) with ParserError
-case class ParserUndefinedIndentifier(state:PState, token:Token) extends JsonError.NoStackErr("",null) with ParserError
+case class ParserUndefinedIndentifier(state:PState, token:Token) extends JsonError.NoStackErr("undefined identifier",null) with ParserError
 case class ParentStateNotMatch[S <: PState:ClassTag](state:S, token:Token, expect:Option[String]=None) extends 
   JsonError.NoStackErr(
     s"did not match expected token $token,"+
@@ -36,3 +36,8 @@ sealed trait TokenIteratorError extends Throwable with JsonError
 case class TokenIteratorIOError(err:Throwable) extends JsonError.NoStackErr("Token iterator io error",err) with TokenIteratorError
 case class TokenIteratorTokenizer(err:TokenError) extends JsonError.NoStackErr(err.getMessage() ,err) with TokenIteratorError
 case class TokenIteratorClosed() extends JsonError.NoStackErr("Iterator closed",null) with TokenIteratorError
+
+sealed trait ParserIteratorError extends Throwable with JsonError
+case class ParserIteratorTokError(err:TokenIteratorError) extends JsonError.NoStackErr(err.getMessage(),err) with ParserIteratorError
+case class ParserIteratorParserError(err:ParserError) extends JsonError.NoStackErr(err.getMessage(),err) with ParserIteratorError
+case class ParserIteratorClosed() extends JsonError.NoStackErr("Iterator closed",null) with ParserIteratorError

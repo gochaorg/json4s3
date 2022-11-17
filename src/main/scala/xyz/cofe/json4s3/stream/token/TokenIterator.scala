@@ -27,6 +27,7 @@ class TokenIterator(
   private var error: Option[TokenIteratorError] = None
   private var buffer: List[Token] = List.empty
   private var closed = false
+  def isClosed = closed
   private var tokenizerEnd = false
 
   private def fetch(state:Tokenizer.State, reader:Reader):(Tokenizer.State, List[Token]) =
@@ -53,6 +54,8 @@ class TokenIterator(
                       curState = newState
                       if tokens.nonEmpty then
                         toks = tokens
+                      else
+                        closed = true
                 case _ =>
                   tokenizer.accept(curState, charCode.toChar) match
                     case Left(err) =>  throw new TokenIteratorTokenizer(err)
