@@ -439,3 +439,21 @@ class ParserTest extends munit.FunSuite:
       )
     ))
   }
+
+  test("comment parse") {
+    println("="*40)
+    println("comment parse")
+
+    val json = """|//sample
+                  |[ /* cmnt */ 1 ]
+                  |//last comment
+               """.stripMargin
+
+    val tokens = Tokenizer.parse(json).getOrElse(List())
+    tokens.foreach(println)
+
+    val ast = ParserIterator(json).next()
+    println(ast)
+
+    assert(ast==AST.JsArray(List(AST.JsInt(1))))
+  }

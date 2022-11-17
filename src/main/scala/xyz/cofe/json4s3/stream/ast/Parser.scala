@@ -159,7 +159,7 @@ object Parser:
         case _ =>
           Left(ParentStateNotMatch(state,token,Some("parent state must ArrExpectValue|ObjExpFieldValue")))
 
-  def parse(tokens:Seq[Token]) =
+  def parse(tokens:Seq[Token]):Either[ParserError,(AST,Seq[Token])] =
     var tokensRest = tokens
     var state = Parser.State.Init
     var stop = false

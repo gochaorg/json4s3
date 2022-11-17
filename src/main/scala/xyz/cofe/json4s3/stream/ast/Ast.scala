@@ -8,6 +8,10 @@ object AST:
     path:List[AST]
   )
 
+  trait JsObjOps:
+    def value:List[(String,AST)]
+    def get(name:String):Option[AST] = value.find { case(n,ast)=> name==n }.map { case(n,ast)=>ast }
+
 /** Дерево Json */
 enum AST:
   case JsStr( value:String )
@@ -17,7 +21,7 @@ enum AST:
   case JsNull
   case JsBool( value:Boolean )
   case JsArray( value:Seq[AST] )
-  case JsObj( value:List[(String,AST)] )
+  case JsObj( value:List[(String,AST)] ) extends AST with AST.JsObjOps
 
   /** Возвращает лексемы представляющее данное дерево */
   def tokens(using formatting:FormattingJson):List[Token] = 
