@@ -120,6 +120,8 @@ enum AST:
     tokens.foreach { t => sb.append(t.json) }
     sb.toString()
 
+  def string(using formatting:FormattingJson):String = json
+
   /** Возвращает json представление */
   def toJson(formatting:FormattingJson):String =
     given fmt : FormattingJson = formatting
