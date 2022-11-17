@@ -9,7 +9,7 @@ sealed trait JsonError
 object JsonError:
   abstract class NoStackErr( message:String, cause:Throwable ) extends Error(message,cause,true,false)
 
-sealed trait TokenError extends JsonError
+sealed trait TokenError extends Throwable with JsonError
 case class DidNotMatchExpectInput(message:String) extends JsonError.NoStackErr( message, null ) with TokenError
 case class NoInput() extends JsonError.NoStackErr( "no input", null ) with TokenError
 case class NotReady(message:String) extends JsonError.NoStackErr( message, null ) with TokenError
@@ -21,17 +21,18 @@ object TokenError:
     NotReady(s"data not ready, parser=${summon[ClassTag[P]].runtimeClass.toGenericString()}, state=$state")
 
 sealed trait ParserError extends JsonError
-
 case class ParserNotMatchInputToken[S <: PState:ClassTag](state:S, token:Token, expect:Option[String]=None) extends 
   JsonError.NoStackErr(s"did not match expected token $token, state=${summon[ClassTag[S]].runtimeClass.toGenericString()}",null) with ParserError
-
 case class ParserUndefinedIndentifier(state:PState, token:Token) extends JsonError.NoStackErr("",null) with ParserError
-
 case class ParentStateNotMatch[S <: PState:ClassTag](state:S, token:Token, expect:Option[String]=None) extends 
   JsonError.NoStackErr(
     s"did not match expected token $token,"+
     s" state=${state.name}"+
     ", parent state="+(state.parentOpt)
   ,null) with ParserError
-
 case class ParserNoInput() extends JsonError.NoStackErr("No input",null) with ParserError
+
+sealed trait TokenIteratorError extends Throwable with JsonError
+case class TokenIteratorIOError(err:Throwable) extends JsonError.NoStackErr("Token iterator io error",err) with TokenIteratorError
+case class TokenIteratorTokenizer(err:TokenError) extends JsonError.NoStackErr(err.getMessage() ,err) with TokenIteratorError
+case class TokenIteratorClosed() extends JsonError.NoStackErr("Iterator closed",null) with TokenIteratorError
