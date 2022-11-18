@@ -42,7 +42,7 @@ object FromJson:
     val names    = labelsFrom[n.MirroredElemLabels]
     val optionals = isOptionals[n.MirroredElemTypes]
     inline n match
-      case s: Mirror.SumOf[A]     => fromJsonSum(s,elems)
+      //case s: Mirror.SumOf[A]     => fromJsonSum(s,elems)
       case p: Mirror.ProductOf[A] => fromJsonPoduct(p,elems,names,defaults,optionals)
     
   def fromJsonSum[T](s:Mirror.SumOf[T], elems:List[FromJson[_]]):FromJson[T] = 
@@ -89,12 +89,15 @@ object FromJson:
             res
           case _ => Left(TypeCastFail(s"fromJsonPoduct can't fetch from $js"))
 
-  given FromJson[Option[Int]] with
-    def fromJson(j:AST) = j match
-      case JsInt(n) => Right(Some(n))
-      case JsFloat(n) => Right(Some(n.toInt))
-      case JsBig(n) => Right(Some(n.toInt))
-      case _ => Left(TypeCastFail(s"can't get double from $j"))
+  // given FromJson[Option[Int]] with
+  //   def fromJson(j:AST) = j match
+  //     case JsInt(n) => Right(Some(n))
+  //     case JsFloat(n) => Right(Some(n.toInt))
+  //     case JsBig(n) => Right(Some(n.toInt))
+  //     case _ => Left(TypeCastFail(s"can't get double from $j"))
+
+  given [A:FromJson]:FromJson[Option[A]] with
+    def fromJson(j:AST) = summon[FromJson[A]].fromJson(j).map(Some(_))
 
   given FromJson[Double] with
     def fromJson(j:AST) = j match

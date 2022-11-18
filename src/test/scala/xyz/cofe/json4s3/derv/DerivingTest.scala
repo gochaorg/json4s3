@@ -42,18 +42,18 @@ class DerivingTest extends munit.FunSuite:
     assert( sample1et==Right(sample1) )
   }
 
-  case class Sample2( a:Option[Int], b:Boolean )
+  case class Sample2( a:Option[Int], b:Option[Boolean] )
 
   test("case class( a:Option[Int], b:Boolean )") {
     println("="*40)
     println("case class( a:Option[Int], b:Boolean )")
 
-    val sample2 = Sample2(None,true)
+    val sample2 = Sample2(None,Some(true))
     println( sample2.json )
     println( sample2.json.jsonAs[Sample2] )
     assert(  sample2.json.jsonAs[Sample2] == Right(sample2) )
 
-    val sample2b = Sample2(Some(998),true)
+    val sample2b = Sample2(Some(998),Some(false))
     println( sample2b.json )
     println( sample2b.json.jsonAs[Sample2] )
     assert(  sample2b.json.jsonAs[Sample2] == Right(sample2b) )
