@@ -27,16 +27,23 @@ inline def labelsFrom[A <: Tuple]:List[String] = inline erasedValue[A] match
   case _:EmptyTuple => Nil
   case _:(head *: tail) => 
     constValue[head].toString() :: labelsFrom[tail]
+
 inline def labelsOf[A](using m:Mirror.Of[A]) = labelsFrom[m.MirroredElemLabels]
+
+inline def isOptionals[A <: Tuple]:List[Boolean] = inline erasedValue[A] match
+  case _:EmptyTuple => Nil
+  case x:(head *: tail) => 
+    false :: isOptionals[tail]
 
 object FromJson:
   inline given derived[A](using n:Mirror.Of[A]):FromJson[A] =
     val elems    = summonAllFromJson[n.MirroredElemTypes]
     val defaults = summonAllDefaultValue[n.MirroredElemTypes]
-    val names    = labelsFrom[n.MirroredElemLabels]    
+    val names    = labelsFrom[n.MirroredElemLabels]
+    val optionals = isOptionals[n.MirroredElemTypes]
     inline n match
       case s: Mirror.SumOf[A]     => fromJsonSum(s,elems)
-      case p: Mirror.ProductOf[A] => fromJsonPoduct(p,elems,names,defaults)
+      case p: Mirror.ProductOf[A] => fromJsonPoduct(p,elems,names,defaults,optionals)
     
   def fromJsonSum[T](s:Mirror.SumOf[T], elems:List[FromJson[_]]):FromJson[T] = 
     new FromJson[T]:
@@ -47,7 +54,8 @@ object FromJson:
     p:Mirror.ProductOf[T], 
     elems:List[FromJson[_]], 
     names:List[String],
-    defaults:List[DefaultValue[_]]
+    defaults:List[DefaultValue[_]],
+    optionals:List[Boolean]
   ):FromJson[T] = 
     import xyz.cofe.json4s3.derv.OptionExt._
 
@@ -60,7 +68,8 @@ object FromJson:
                 case Some(jsFieldValue) =>
                   restore.asInstanceOf[FromJson[Any]].fromJson(jsFieldValue)
                 case None =>
-                  tryDefValue.asInstanceOf[DefaultValue[Any]].defaultValue.lift(FieldNotFound(s"field $name not found and default value not defined"))
+                  //summon[DefaultValue[T]].defaultValue.lift(FieldNotFound(s"field $name not found and default value not defined"))
+                  tryDefValue.asInstanceOf[DefaultValue[Any]].defaultValue.lift(FieldNotFound(s"field $name not found and default value not defined $tryDefValue"))
             }.foldLeft(Right(List[Any]()):Either[DervError,List[Any]]){ case (a,vE) => 
               vE.flatMap { v => 
                 a.map { l => v :: l }
@@ -79,6 +88,13 @@ object FromJson:
             }
             res
           case _ => Left(TypeCastFail(s"fromJsonPoduct can't fetch from $js"))
+
+  given FromJson[Option[Int]] with
+    def fromJson(j:AST) = j match
+      case JsInt(n) => Right(Some(n))
+      case JsFloat(n) => Right(Some(n.toInt))
+      case JsBig(n) => Right(Some(n.toInt))
+      case _ => Left(TypeCastFail(s"can't get double from $j"))
 
   given FromJson[Double] with
     def fromJson(j:AST) = j match

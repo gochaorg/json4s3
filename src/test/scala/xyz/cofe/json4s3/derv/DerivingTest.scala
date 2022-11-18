@@ -49,7 +49,10 @@ class DerivingTest extends munit.FunSuite:
     println("case class( a:Option[Int], b:Boolean )")
 
     val sample2 = Sample2(None,true)
-    println(sample2.json)
-
+    println( sample2.json )
     println( sample2.json.jsonAs[Sample2] )
+
+    val sample2b = Sample2(Some(998),true)
+    println( sample2b.json )
+    println( sample2b.json.jsonAs[Sample2] )
   }
