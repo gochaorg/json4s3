@@ -15,19 +15,6 @@ trait DefaultValue[T]:
   def defaultValue:Option[T]
 
 object DefaultValue:
-  given DefaultValue[Int] with
-    def defaultValue = None
-
-  given DefaultValue[String] with
-    def defaultValue = None
-
-  given DefaultValue[Boolean] with
-    def defaultValue = None
-
-  // given DefaultValue[Int] with
-  //   def defaultValue = None
-
-
   given [T]: DefaultValue[Option[T]] with
     def defaultValue: Option[Option[T]] = Some(None)
 

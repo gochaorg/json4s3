@@ -51,8 +51,10 @@ class DerivingTest extends munit.FunSuite:
     val sample2 = Sample2(None,true)
     println( sample2.json )
     println( sample2.json.jsonAs[Sample2] )
+    assert(  sample2.json.jsonAs[Sample2] == Right(sample2) )
 
     val sample2b = Sample2(Some(998),true)
     println( sample2b.json )
     println( sample2b.json.jsonAs[Sample2] )
+    assert(  sample2b.json.jsonAs[Sample2] == Right(sample2b) )
   }
