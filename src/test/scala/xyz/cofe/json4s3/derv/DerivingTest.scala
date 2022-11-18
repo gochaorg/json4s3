@@ -24,9 +24,9 @@ class DerivingTest extends munit.FunSuite:
     )
   }
 
-  test("str to json") { assert( "abc".asJson == JsStr("abc") ) }
-  test("int to json") { assert( 1.asJson == JsInt(1) ) }
-  test("list[1,2] to json") { assert( List(1,2).asJson == JsArray(List(JsInt(1),JsInt(2))) ) }
+  test("str to json") { assert( "abc".asJson == Some(JsStr("abc")) ) }
+  test("int to json") { assert( 1.asJson == Some(JsInt(1)) ) }
+  test("list[1,2] to json") { assert( List(1,2).asJson == Some(JsArray(List(JsInt(1),JsInt(2)))) ) }
 
   case class Sample1( a:Int, b:String )
 
@@ -35,19 +35,21 @@ class DerivingTest extends munit.FunSuite:
     println("case class(a:Int, b:String)")
 
     val sample1 = Sample1(1,"str")
-    println(sample1.asJson.string)
+    println(sample1.asJson.map(_.string))
 
     val sampleJson = "{\"a\":1,\"b\":\"str\"}"
     val sample1et = sampleJson.jsonAs[Sample1]
     assert( sample1et==Right(sample1) )
   }
 
-  // case class Sample2( a:Option[Int], b:Boolean )
+  case class Sample2( a:Option[Int], b:Boolean )
 
-  // test("case class( a:Option[Int], b:Boolean )") {
-  //   println("="*40)
-  //   println("case class( a:Option[Int], b:Boolean )")
+  test("case class( a:Option[Int], b:Boolean )") {
+    println("="*40)
+    println("case class( a:Option[Int], b:Boolean )")
 
-  //   val sample2 = Sample2(None,true)
-  //   println(sample2.asJson.string)
-  // }
+    val sample2 = Sample2(None,true)
+    println(sample2.json)
+
+    println( sample2.json.jsonAs[Sample2] )
+  }

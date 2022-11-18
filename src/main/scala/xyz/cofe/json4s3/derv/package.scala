@@ -15,6 +15,8 @@ package object derv {
       }
 
   extension [A:ToJson]( item:A )
-    def asJson = 
+    def asJson:Option[AST] = 
       summon[ToJson[A]].toJson(item)
+    def json:String =
+      summon[ToJson[A]].toJson(item).map(_.json).getOrElse("")
 }

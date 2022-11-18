@@ -14,7 +14,7 @@ inline def summonAllToJson[T <: Tuple]: List[ToJson[_]] =
     case _: (t *: ts) => summonInline[ToJson[t]] :: summonAllToJson[ts]
 
 trait ToJson[T]:
-  def toJson(t:T):AST
+  def toJson(t:T):Option[AST]
 
 object ToJson:
   // https://dotty.epfl.ch/docs/reference/contextual/derivation.html
@@ -38,7 +38,7 @@ object ToJson:
     elems2json: List[ToJson[_]],
   ):ToJson[T] = 
     new ToJson[T]:
-      def toJson(t:T):AST =
+      def toJson(t:T):Option[AST] =
         val fields = t.asInstanceOf[Product]
           .productIterator
           .zip(elems2json)
@@ -46,38 +46,45 @@ object ToJson:
           .map { case(((value,value2json),fieldName)) => 
             fieldName -> value2json.asInstanceOf[ToJson[Any]].toJson(value) 
           }
+          .filter(_._2.isDefined)
+          .map { case(n,vOpt)=> (n,vOpt.get) }
+          .toList
 
-        JsObj( fields.toList )
+        Some(JsObj( fields ))
+
+  given [A:ToJson]:ToJson[Option[A]] with
+    def toJson(itm:Option[A]) = itm.flatMap(it=>summon[ToJson[A]].toJson(it))
 
   given ToJson[Byte] with
-    def toJson(t: Byte): AST = AST.JsInt(t)
+    def toJson(t: Byte): Option[AST] = Some(AST.JsInt(t))
 
   given ToJson[Short] with
-    def toJson(t: Short): AST = AST.JsInt(t)
+    def toJson(t: Short): Option[AST] = Some(AST.JsInt(t))
 
   given ToJson[Int] with
-    def toJson(t: Int): AST = AST.JsInt(t)
+    def toJson(t: Int): Option[AST] = Some(AST.JsInt(t))
 
   given ToJson[Long] with
-    def toJson(t: Long): AST = AST.JsBig(t)
+    def toJson(t: Long): Option[AST] = Some(AST.JsBig(t))
 
   given ToJson[BigInt] with
-    def toJson(t: BigInt): AST = AST.JsBig(t)
+    def toJson(t: BigInt): Option[AST] = Some(AST.JsBig(t))
 
   given ToJson[Float] with
-    def toJson(t: Float): AST = AST.JsFloat(t)
+    def toJson(t: Float): Option[AST] = Some(AST.JsFloat(t))
 
   given ToJson[Double] with
-    def toJson(t: Double): AST = AST.JsFloat(t)
+    def toJson(t: Double): Option[AST] = Some(AST.JsFloat(t))
 
   given ToJson[Boolean] with
-    def toJson(t: Boolean): AST = AST.JsBool(t)
+    def toJson(t: Boolean): Option[AST] = Some(AST.JsBool(t))
 
   given ToJson[String] with
-    def toJson(t: String): AST = AST.JsStr(t)
+    def toJson(t: String): Option[AST] = Some(AST.JsStr(t))
 
   given [A:ToJson]:ToJson[List[A]] with
-    def toJson(list: List[A]): AST =
+    def toJson(list: List[A]): Option[AST] =
       val item2json = summon[ToJson[A]]
-      JsArray( list.map(item2json.toJson) )
+      val l = list.map(a => item2json.toJson(a)).flatten
+      Some(JsArray(l))
 
