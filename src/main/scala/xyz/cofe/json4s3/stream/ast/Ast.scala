@@ -4,6 +4,7 @@ import xyz.cofe.json4s3.stream.token.Token
 import xyz.cofe.json4s3.stream.token.Token
 
 object AST:
+  /** Используется для генерации лексем */
   case class GenToken(
     path:List[AST]
   )
