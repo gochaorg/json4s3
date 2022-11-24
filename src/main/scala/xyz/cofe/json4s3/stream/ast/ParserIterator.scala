@@ -20,6 +20,7 @@ object ParserIterator:
       TokenIterator(string)
     )
 
+/** Итератор по лексемам, генерирует на выходе Json объекты */
 class ParserIterator(
   private var state:Parser.State,
   private var tokenIterator:TokenIterator
