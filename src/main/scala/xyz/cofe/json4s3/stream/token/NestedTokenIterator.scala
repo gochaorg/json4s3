@@ -1,6 +1,7 @@
 package xyz.cofe.json4s3.stream.token
 
 import xyz.cofe.json4s3.stream.token.Token
+import xyz.cofe.json4s3.errors.TokenIteratorClosed
 
 class NestedTokenIterator( sourceIterator:Iterator[Token] ) extends Iterator[Token]:
   var closed = false
@@ -13,7 +14,7 @@ class NestedTokenIterator( sourceIterator:Iterator[Token] ) extends Iterator[Tok
 
   override def next(): Token = 
     if closed then
-      throw Error("closed")
+      throw TokenIteratorClosed()
     else
       val tok = sourceIterator.next()
       tok match
