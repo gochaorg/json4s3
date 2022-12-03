@@ -7,7 +7,7 @@ class PrettyTest extends munit.FunSuite:
     println("="*40)
     println("pretty 1")
 
-    val jsTreeEt = Parser.parse(
+    val jsTreeEt = Parser.parseSeq(
       Tokenizer.parse(
         """
         {
@@ -22,7 +22,7 @@ class PrettyTest extends munit.FunSuite:
 
     println(jsTree.json)
 
-    Parser.parse(Tokenizer.parse(jsTree.json).getOrElse {
+    Parser.parseSeq(Tokenizer.parse(jsTree.json).getOrElse {
       throw new Error()
     }) match
       case Left(err) => fail(err.toString())
@@ -33,7 +33,7 @@ class PrettyTest extends munit.FunSuite:
     println("="*40)
     println("pretty 2")
 
-    val jsTreeEt = Parser.parse(
+    val jsTreeEt = Parser.parseSeq(
       Tokenizer.parse(
         """
         { a: 'abc'
@@ -61,7 +61,7 @@ class PrettyTest extends munit.FunSuite:
     val json = jsTree.json
     println(json)
 
-    Parser.parse(Tokenizer.parse(json).getOrElse {
+    Parser.parseSeq(Tokenizer.parse(json).getOrElse {
       throw new Error()
     }) match
       case Left(err) => fail(err.toString())

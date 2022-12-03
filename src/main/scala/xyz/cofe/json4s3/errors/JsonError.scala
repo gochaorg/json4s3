@@ -24,15 +24,23 @@ object TokenError:
 
 /** Общий тип для парсера */
 sealed trait ParserError extends Throwable with JsonError
+
+/** Не совпадает поступившая лексема и текущее состоние парсера */
 case class ParserNotMatchInputToken[S <: PState:ClassTag](state:S, token:Token, expect:Option[String]=None) extends 
   JsonError.NoStackErr(s"did not match expected token $token, state=${summon[ClassTag[S]].runtimeClass.toGenericString()}",null) with ParserError
+
+/** Входящая лексема-идентификатор не распознана, актуально когда ожидается true|false|null, а пришла дичь */
 case class ParserUndefinedIndentifier(state:PState, token:Token) extends JsonError.NoStackErr("undefined identifier",null) with ParserError
+
+/** Актуально когда лишнаяя закрывающая скобка `}`  `]` */
 case class ParentStateNotMatch[S <: PState:ClassTag](state:S, token:Token, expect:Option[String]=None) extends 
   JsonError.NoStackErr(
     s"did not match expected token $token,"+
     s" state=${state.name}"+
     ", parent state="+(state.parentOpt)
   ,null) with ParserError
+
+/** Конец входных данных */
 case class ParserNoInput() extends JsonError.NoStackErr("No input",null) with ParserError
 
 /** Общий тип для итераторов по лексемам */

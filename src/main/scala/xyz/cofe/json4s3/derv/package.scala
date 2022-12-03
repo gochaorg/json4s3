@@ -9,7 +9,7 @@ package object derv {
   extension (string:String)
     def jsonAs[A:FromJson]:Either[DervError,A] = 
       Tokenizer.parse(string).left.map(DervError.from).flatMap { tokens =>
-        Parser.parse(tokens).left.map(DervError.from).flatMap { case((js,tail)) => 
+        Parser.parseSeq(tokens).left.map(DervError.from).flatMap { case((js,tail)) => 
           summon[FromJson[A]].fromJson(js)
         }
       }

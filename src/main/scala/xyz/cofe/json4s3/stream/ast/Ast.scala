@@ -4,6 +4,7 @@ import xyz.cofe.json4s3.stream.token.Token
 import xyz.cofe.json4s3.stream.token.Token
 
 object AST:
+  /** Используется при генерации последовательности токенов (из AST дерва в строку) */
   case class GenToken(
     path:List[AST]
   )

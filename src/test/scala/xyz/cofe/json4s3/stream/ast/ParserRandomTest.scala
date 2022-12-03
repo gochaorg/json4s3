@@ -11,7 +11,7 @@ class ParserRandomTest extends munit.FunSuite:
   test("try parse") {
     val astJs = astRnd.js()
     (0 until 50).foreach { _=> 
-      Parser.parse( astJs.tokens ) match
+      Parser.parseSeq( astJs.tokens ) match
         case Left(err) => fail(err.toString())
         case Right(value) => ()
     }

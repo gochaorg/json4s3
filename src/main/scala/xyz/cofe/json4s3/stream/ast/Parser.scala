@@ -2,6 +2,7 @@ package xyz.cofe.json4s3.stream.ast
 
 import xyz.cofe.json4s3.stream.token.Token
 import xyz.cofe.json4s3.errors._
+import xyz.cofe.json4s3.stream.token.TokenIterator
 
 /**
  * = grammar =
@@ -33,6 +34,31 @@ import xyz.cofe.json4s3.errors._
  *     fieldKeyValue ::= ( fieldName {skipToken} Token.Colon expression )
  */
 object Parser:
+  def parse(tokenSource:Iterator[Token]):Either[ParserError,AST] =
+    var state = State.Init
+    var stop = false
+    var result : Either[ParserError,AST] = Left(ParserNoInput())
+    while !stop do
+      if tokenSource.hasNext then
+        accept(state,tokenSource.next()) match
+          case Left(err) => 
+            result = Left(err)
+            stop = true
+          case Right((newState,Some(resAst))) =>
+            result = Right(resAst)
+            stop = true
+          case Right((newState,_)) =>
+            state = newState
+      else
+        result = Left(ParserNoInput())        
+    result
+
+  def parse(source:String):Either[ParserError,AST] =
+    parse(TokenIterator(source))
+
+  def parse(source:java.io.Reader):Either[ParserError,AST] =
+    parse(TokenIterator(source))
+
   enum State:
     // Str         -> Init out:JsStr
     // IntNumber   -> Init out:JsInt
@@ -115,8 +141,6 @@ object Parser:
       case State.ObjExpectComma(value, parent) => "ObjExpectComma"
       case State.ObjAfterComma(value, parent) => "ObjAfterComma"
     
-    
-
   trait ArrayOps:
     def value:List[AST]
     def toJsArray:AST.JsArray = AST.JsArray(value)
@@ -159,7 +183,7 @@ object Parser:
         case _ =>
           Left(ParentStateNotMatch(state,token,Some("parent state must ArrExpectValue|ObjExpFieldValue")))
 
-  def parse(tokens:Seq[Token]):Either[ParserError,(AST,Seq[Token])] =
+  def parseSeq(tokens:Seq[Token]):Either[ParserError,(AST,Seq[Token])] =
     var tokensRest = tokens
     var state = Parser.State.Init
     var stop = false
