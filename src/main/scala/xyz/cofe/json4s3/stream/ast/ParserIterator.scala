@@ -1,11 +1,12 @@
 package xyz.cofe.json4s3.stream.ast
 
 import xyz.cofe.json4s3.stream.token.TokenIterator
+import xyz.cofe.json4s3.stream.token.Token
 import xyz.cofe.json4s3.errors._
 import java.io.Reader
 
 object ParserIterator:
-  def apply(tokens: TokenIterator):ParserIterator =
+  def apply(tokens: Iterator[Token]):ParserIterator =
     new ParserIterator(Parser.State.Init, tokens)
 
   def apply(reader: Reader):ParserIterator =
@@ -20,37 +21,37 @@ object ParserIterator:
       TokenIterator(string)
     )
 
+/** Итератор по лексемам, генерирует на выходе Json объекты */
 class ParserIterator(
   private var state:Parser.State,
-  private var tokenIterator:TokenIterator
+  private var tokenIterator:Iterator[Token]
 ) extends Iterator[AST]:
   private var fetched: Option[AST] = None
   private var error: Option[ParserIteratorError] = None
 
   private def fetch():Option[AST] =
     var res:Option[AST] = None
-    tokenIterator.isClosed match
-      case true => throw ParserIteratorClosed()
-      case false => 
-        try 
-          var stop = false
-          while !stop do
-            if !tokenIterator.hasNext then
+    try 
+      var stop = false
+      while !stop do
+        if !tokenIterator.hasNext then
+          stop = true
+        else
+          val tok = tokenIterator.next()
+          Parser.accept(state, tok) match
+            case Left(err) => throw ParserIteratorParserError(err)
+            case Right((newState,Some(ast))) =>
+              state = newState
+              res = Some(ast)
               stop = true
-            else
-              val tok = tokenIterator.next()
-              Parser.accept(state, tok) match
-                case Left(err) => throw ParserIteratorParserError(err)
-                case Right((newState,Some(ast))) =>
-                  state = newState
-                  res = Some(ast)
-                  stop = true
-                case Right((newState,None)) =>
-                  state = newState
-          res
-        catch
-          case err:TokenIteratorError =>
-            throw ParserIteratorTokError(err)
+            case Right((newState,None)) =>
+              state = newState
+      res
+    catch
+      case terr:TokenIteratorClosed =>
+        throw ParserIteratorClosed()
+      case err:TokenIteratorError =>
+        throw ParserIteratorTokError(err)
 
   try
     fetched = fetch()

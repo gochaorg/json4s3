@@ -4,7 +4,7 @@ lazy val root = project
   .in(file("."))
   .settings(
     name := "json4s3",
-    version := "0.0.1",
+    version := "0.0.2",
 
     scalaVersion := scala3Version,
 
