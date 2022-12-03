@@ -36,6 +36,8 @@ inline def isOptionals[A <: Tuple]:List[Boolean] = inline erasedValue[A] match
     false :: isOptionals[tail]
 
 object FromJson:
+  def builder[A] = FromJsonBuilder.query[A]
+
   inline given derived[A](using n:Mirror.Of[A]):FromJson[A] =
     val elems    = summonAllFromJson[n.MirroredElemTypes]
     val defaults = summonAllDefaultValue[n.MirroredElemTypes]

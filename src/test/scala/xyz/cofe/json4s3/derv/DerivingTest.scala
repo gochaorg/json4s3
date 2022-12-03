@@ -58,3 +58,20 @@ class DerivingTest extends munit.FunSuite:
     println( sample2b.json.jsonAs[Sample2] )
     assert(  sample2b.json.jsonAs[Sample2] == Right(sample2b) )
   }
+
+  sealed trait BaseSample
+  case class ChildOne( a:Int ) extends BaseSample
+  case class ChildTwo( a:String ) extends BaseSample
+
+  test("builder") {
+    import xyz.cofe.json4s3.derv.FromJsonBuilder._
+    val x = FromJson.builder[BaseSample]
+      .select[ChildOne]( q => q("type").string === "1" )
+      .select[ChildTwo]( q => q("type").string === "1" )
+      .build
+
+    FromJson.builder[BaseSample].fetch {
+      select[ChildOne]("aa")("b").string === "d"
+      select[ChildTwo]("aa")("b").string === "d"
+    }
+  }

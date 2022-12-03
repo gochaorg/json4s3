@@ -6,7 +6,7 @@ import xyz.cofe.json4s3.stream.ast.Parser.{State => PState}
 import scala.reflect.ClassTag
 
 /** Общий тип для всех ошибок json4s3 */
-trait JsonError
+trait JsonError extends Throwable
 object JsonError:
   abstract class NoStackErr( message:String, cause:Throwable ) extends Error(message,cause,true,false)
 
