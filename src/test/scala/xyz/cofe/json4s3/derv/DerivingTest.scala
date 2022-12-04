@@ -65,13 +65,14 @@ class DerivingTest extends munit.FunSuite:
 
   test("builder") {
     import xyz.cofe.json4s3.derv.FromJsonBuilder._
-    val x = FromJson.builder[BaseSample]
-      .select[ChildOne]( q => q("type").string === "1" )
-      .select[ChildTwo]( q => q("type").string === "1" )
-      .build
+    implicit val baseSampleFromJson : FromJson[BaseSample] = 
+      FromJson.builder
+        .select[ChildOne]( q => q("type").string === "1" )
+        .select[ChildTwo]( q => q("type").string === "2" )
+        .build
 
-    FromJson.builder[BaseSample].fetch {
-      select[ChildOne]("aa")("b").string === "d"
-      select[ChildTwo]("aa")("b").string === "d"
-    }
+    //FromJson.builder[BaseSample].map[ChildOne].query("a").string === "2"
+
+    assert( """{ type:"1", a:1 }""".jsonAs[BaseSample] == Right(ChildOne(1)) )
+    assert( """{ type:"2", a:"xcv" }""".jsonAs[BaseSample] == Right(ChildTwo("xcv")) )
   }

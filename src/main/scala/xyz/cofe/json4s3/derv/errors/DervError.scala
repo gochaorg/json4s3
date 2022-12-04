@@ -15,3 +15,4 @@ case class ToSumFail(message:String) extends JsonError.NoStackErr(message,null) 
 case class FieldNotFound(message:String) extends JsonError.NoStackErr(message,null) with DervError
 case class NestedTokenError(error:TokenError) extends JsonError.NoStackErr(error.getMessage(),error) with DervError
 case class NestedParserError(error:ParserError) extends JsonError.NoStackErr(error.getMessage(),error) with DervError
+case class NotMatched() extends JsonError.NoStackErr("not matched",null) with DervError
