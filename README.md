@@ -3,7 +3,7 @@ json4s3
 
 json4s3 - Это библиотека для парсинга json
 
-lexem parse (tokenizer)
+Lexem parse (tokenizer)
 --------------------------
 
 - _Какие есть лексемы_
@@ -21,7 +21,27 @@ assert(TokenIterator("123 true false").toList == List(
 ))
 ```
 
-ast parse
+### Какие есть лексемы
+
+`enum Token:`
+
+- `case Str( val text:String )` - представляет строку
+- `case IntNumber( val num:Int )` - представляет число - целое
+- `case BigNumber( val num:BigInt )` - представляет число - большое целое
+- `case FloatNumber( val num:Double )` - представляет число - плавующее
+- `case OpenSquare` - квадратная скобка
+- `case CloseSquare` - квадратная скобка
+- `case OpenBrace` - фигурная скобка
+- `case CloseBrace` - фигурная скобка
+- `case Comma` - запятая
+- `case Colon` - двоеточие
+- `case WhiteSpace( val text:String )` - пробелный символ
+- `case Identifier( val text:String )` - идентификатор
+- `case SLComment( val text:String )` - однострочный коментарий
+- `case MLComment( val text:String )` - многострочный коментарий
+
+
+Ast parse
 -------------------
 
 - _Какие есть узлы AST_
@@ -40,7 +60,7 @@ val astEt = Parser.parse(
   """)
 ```
 
-pretty
+Pretty
 -----------------
 
 - _Генерация JSON string_
@@ -55,7 +75,7 @@ val json = jsTree.json
 println(json)
 ```
 
-iterator
+Iterator
 -----------------
 
 - _Интератор Token + AST_
@@ -73,7 +93,7 @@ assert(
 )
 ```
 
-query
+Query
 ----------------
 
 - _Запрос к поддереву_
@@ -92,7 +112,7 @@ assert( astEt.query("a").int == Right(1) )
 assert( astEt.query("b")("c").int == Right(2) )
 ```
 
-derive
+Derive
 -----------
 
 - _FromJson / ToJson_
@@ -131,7 +151,7 @@ assert( """{ type:"1", a:1 }""".jsonAs[BaseSample] == Right(ChildOne(1)) )
 assert( """{ type:"2", a:"xcv" }""".jsonAs[BaseSample] == Right(ChildTwo("xcv")) )
 ```
 
-errors
+Errors
 --------------
 
 _Описание иерархии ошибок_
