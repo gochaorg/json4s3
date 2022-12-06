@@ -4,6 +4,21 @@ import xyz.cofe.json4s3.errors._
 import xyz.cofe.json4s3.errors.TokenError._
 
 object Tokenizer:
+  /**
+   * Состояние парсера
+   * 
+   * Начальное состояние - Init
+   * 
+   * Переходы состояний, в зависимости от входящего символа:
+   * 
+   *  - '-' | '.' | '0' .. '9' в NumParse
+   *  - '{' | '}' | '[' | ']' | ',' | ':' в OneCharParse
+   *  - '\'' | '"' в StrParse
+   *  - whitespace в WhitespaceParse
+   *  - '/' -> CommentParse
+   *  - letter | '$' | '_' -> IdParser
+   *  - все остальное в Err
+   */
   enum State:
     // '-' -> NumParse
     // '.' -> NumParse
@@ -59,6 +74,14 @@ class Tokenizer:
 
   def init:State = State.Init
 
+  /**
+   * Парсинг очередной буквы
+   * 
+   * @param state - текущее состояние парсера
+   * @param char - входящий символ
+   * @return или ошибка
+   * или (новое состояние, распознаные лексемы)
+   */
   def accept(state:State, char:Char):Either[TokenError,(State,List[Token])] = state match
     case State.Init => char match
       case '-' | '.' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>

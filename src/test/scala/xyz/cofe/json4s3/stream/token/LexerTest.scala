@@ -6,8 +6,8 @@ import xyz.cofe.json4s3.errors.TokenError
 
 class TokenizerTest extends munit.FunSuite:
   test("test") {
-    val lexer = new Tokenizer()
-    var state = lexer.init
+    //val lexer = new Tokenizer()
+    //var state = lexer.init
     val sample = "{}[],: 1 \"aaa\" /* abc */"
     val tokensEt = sample.foldLeft( Right( (lexer.init, List()) ):Either[TokenError,(Tokenizer.State,List[Token])] ){ case(sum,chr) => 
       sum.flatMap { case (state, tokens) =>
@@ -16,4 +16,9 @@ class TokenizerTest extends munit.FunSuite:
     }.map { _._2 }
 
     tokensEt.foreach(_.foreach(println))
+  }
+
+  test("sample") {
+    //val lexer = new Tokenizer()
+    
   }

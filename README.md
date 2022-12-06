@@ -11,6 +11,7 @@ Lexem parse (tokenizer)
 - _Итератор по лексемам_
 - _Вложенный итератор по лексемам_
 
+
 ```scala
 assert(TokenIterator("123 true false").toList == List(
   Token.IntNumber(123),
@@ -29,16 +30,37 @@ assert(TokenIterator("123 true false").toList == List(
 - `case IntNumber( val num:Int )` - представляет число - целое
 - `case BigNumber( val num:BigInt )` - представляет число - большое целое
 - `case FloatNumber( val num:Double )` - представляет число - плавующее
-- `case OpenSquare` - квадратная скобка
-- `case CloseSquare` - квадратная скобка
-- `case OpenBrace` - фигурная скобка
-- `case CloseBrace` - фигурная скобка
-- `case Comma` - запятая
-- `case Colon` - двоеточие
+- `case OpenSquare` - квадратная скобка `[`
+- `case CloseSquare` - квадратная скобка `]`
+- `case OpenBrace` - фигурная скобка `{`
+- `case CloseBrace` - фигурная скобка `}`
+- `case Comma` - запятая `,`
+- `case Colon` - двоеточие `:`
 - `case WhiteSpace( val text:String )` - пробелный символ
-- `case Identifier( val text:String )` - идентификатор
-- `case SLComment( val text:String )` - однострочный коментарий
+- `case Identifier( val text:String )` - идентификатор - имеется виду `true` | `false` | `null`
+- `case SLComment( val text:String )` - однострочный коментарий 
 - `case MLComment( val text:String )` - многострочный коментарий
+
+### Парсер лексем
+
+Основной парсер лексем - `xyz.cofe.json4s3.stream.token.Tokenizer`
+
+Основной метод парсинга
+
+```scala
+def accept(state:State, char:Char):Either[TokenError,(State,List[Token])]
+```
+
+- *Параметры*
+  - **state** - текущее состояние парсера
+  - **char** - входящий символ
+- *Результат*
+  - Или
+    - Ошибка
+    - (новое состояние, распознаные лексемы)
+
+Парсинг
+
 
 
 Ast parse
