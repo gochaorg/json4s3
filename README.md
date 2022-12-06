@@ -6,11 +6,29 @@ json4s3 - Это библиотека для парсинга json
 Lexem parse (tokenizer)
 --------------------------
 
+[Основная статья о лексическом анализе](tokenizer.md)
+
 - _Какие есть лексемы_
 - _Парсер лексем_
 - _Итератор по лексемам_
 - _Вложенный итератор по лексемам_
 
+### Короткие примеры
+
+```scala
+import xyz.cofe.json4s3.stream.token.Tokenizer
+Tokenizer.parse("12 true") match
+  case Left(err) => 
+    println(err)
+  case Right(tokenList) =>
+    tokenList.foreach(println)
+```
+
+Вывод
+
+    IntNumber(12)
+    WhiteSpace( )
+    Identifier(true)
 
 ```scala
 assert(TokenIterator("123 true false").toList == List(
@@ -40,27 +58,6 @@ assert(TokenIterator("123 true false").toList == List(
 - `case Identifier( val text:String )` - идентификатор - имеется виду `true` | `false` | `null`
 - `case SLComment( val text:String )` - однострочный коментарий 
 - `case MLComment( val text:String )` - многострочный коментарий
-
-### Парсер лексем
-
-Основной парсер лексем - `xyz.cofe.json4s3.stream.token.Tokenizer`
-
-Основной метод парсинга
-
-```scala
-def accept(state:State, char:Char):Either[TokenError,(State,List[Token])]
-```
-
-- *Параметры*
-  - **state** - текущее состояние парсера
-  - **char** - входящий символ
-- *Результат*
-  - Или
-    - Ошибка
-    - (новое состояние, распознаные лексемы)
-
-Парсинг
-
 
 
 Ast parse
