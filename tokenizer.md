@@ -273,3 +273,76 @@ assert( srcTIter.next() == Comma )
 nestedIter = new NestedTokenIterator(srcTIter)
 assert( nestedIter.toList == List( OpenBrace, Str("d"), Colon, IntNumber(4), CloseBrace ) )
 ```
+
+Грамматика
+------------------------
+
+- `case Str( val text:String )` - представляет строку
+- `case IntNumber( val num:Int )` - представляет число - целое
+- `case BigNumber( val num:BigInt )` - представляет число - большое целое
+- `case FloatNumber( val num:Double )` - представляет число - плавующее
+- `case OpenSquare` - квадратная скобка `[`
+- `case CloseSquare` - квадратная скобка `]`
+- `case OpenBrace` - фигурная скобка `{`
+- `case CloseBrace` - фигурная скобка `}`
+- `case Comma` - запятая `,`
+- `case Colon` - двоеточие `:`
+- `case WhiteSpace( val text:String )` - пробелный символ
+- `case Identifier( val text:String )` - идентификатор - имеется виду `true` | `false` | `null`
+- `case SLComment( val text:String )` - однострочный коментарий 
+- `case MLComment( val text:String )` - многострочный коментарий
+
+```
+OpenSquare  ::= '[' 
+CloseSquare ::= ']'
+OpenBrace   ::= '{'
+CloseBrace  ::= '}'
+Comma       ::= ','
+Colon       ::= ':'
+WhiteSpace  ::= _whitespace_char_ +
+Identifier  ::= ( letter | ' _ '   | "\$" ) 
+                ( letter | digit | '_' | "$" )*
+
+SLComment ::= '//' any * endOfLine
+
+MLComment ::= '/*' any * '*/' 
+            | '/*' any * endOfFile
+
+string ::= singe_quoted_string | double_quoted_string
+singe_quoted_string  ::= '\'' { encoded_char } '\''
+double_quoted_string ::= '"' { encoded_char } '"'
+encoded_char ::= escaped_seq | simple_char
+escaped_seq ::= escape_hex | escape_unicode_ext | escape_unicode | escape_oct | escape_simple
+escape_oct ::= '\' oct_char oct_char oct_char
+escape_simple ::= '\' ( '0' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | '\'' | '"' | '\' )
+escape_hex ::= '\x' hex_char hex_char
+escape_unicode ::= '\u' hex_char hex_char hex_char hex_char
+escape_unicode_ext ::= '\u{' hex_char hex_char hex_char hex_char hex_char '}'
+
+
+    number      ::= [ unary_minus ] integer | float
+    
+    integer     ::= octal_int | hex_int | bin_int | dec_int
+    octal_int   ::= '0' [ 'o' | 'O' ] { octal_digit } [ 'n' ]
+      hex_int   ::= '0' ( 'x' | 'X' ) { hex_digit } [ 'n' ]
+      bin_int   ::= '0' ( 'b' | 'B' ) { bin_digit } [ 'n' ]
+      dec_int   ::= dec_digit { dec_digit } [ 'n' ]
+    
+      bin_digit ::= '0' | '1'
+    octal_digit ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7'
+      dec_digit ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+      hex_digit ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' 
+                  | 'a' | 'b' | 'c' | 'd' | 'e' | 'f'
+                  | 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
+    
+float         ::= dec_part '.' fraction_part ( 'e' | 'E' ) [ '-' | '+' ] exponent_part
+                | dec_part '.' fraction_part 
+                | dec_part '.' ( 'e' | 'E' )  [ '-' | '+' ] exponent_part 
+                | dec_part '.'
+                | '.' fraction_part ( 'e' | 'E' )  [ '-' | '+' ] exponent_part
+                | '.' fraction_part 
+     
+dec_part      ::= dec_digit { dec_digit }
+fraction_part ::= dec_digit { dec_digit }
+exponent_part ::= dec_digit { dec_digit }
+```
