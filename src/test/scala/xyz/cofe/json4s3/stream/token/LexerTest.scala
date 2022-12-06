@@ -9,9 +9,9 @@ class TokenizerTest extends munit.FunSuite:
     //val lexer = new Tokenizer()
     //var state = lexer.init
     val sample = "{}[],: 1 \"aaa\" /* abc */"
-    val tokensEt = sample.foldLeft( Right( (lexer.init, List()) ):Either[TokenError,(Tokenizer.State,List[Token])] ){ case(sum,chr) => 
+    val tokensEt = sample.foldLeft( Right( (Tokenizer.State.Init, List()) ):Either[TokenError,(Tokenizer.State,List[Token])] ){ case(sum,chr) => 
       sum.flatMap { case (state, tokens) =>
-        lexer.accept(state,chr).map { case (newState, newTokens) => (newState,tokens ++ newTokens) }
+        Tokenizer.accept(state,chr).map { case (newState, newTokens) => (newState,tokens ++ newTokens) }
       }
     }.map { _._2 }
 

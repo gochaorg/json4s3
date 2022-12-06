@@ -36,17 +36,9 @@ object Tokenizer:
     case CommentParse( parser:comment.Parser, state:comment.State )
     case WhitespaceParse( parser:whitespace.Parser, state:whitespace.State )
 
-  def parse(str:String):Either[TokenError,List[Token]] = {
-    val inst = new Tokenizer()
-    inst.parse(str)
-  }
-
 /**
   * Парсинг лексем Json
   */
-class Tokenizer:
-  import Tokenizer._
-
   extension [P <: StreamTokenParserState](state:P)
     def succFinish:Boolean = {
       !state.isError && !state.isAcceptable && state.isReady

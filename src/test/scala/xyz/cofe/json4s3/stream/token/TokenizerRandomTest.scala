@@ -73,9 +73,8 @@ class TokenizerRandomTest extends munit.FunSuite:
   test("parse random tokens") {
     val expectTokens = randTokens(50,100)
     val jsonString = expectTokens.map { _.json }.mkString
-    val tokenizer = new Tokenizer()
 
-    val actualParsed = tokenizer.parse(jsonString)
+    val actualParsed = Tokenizer.parse(jsonString)
 
     actualParsed match
       case Left(err) => 

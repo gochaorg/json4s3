@@ -11,7 +11,6 @@ import java.io.StringReader
 object TokenIterator:
   def apply(reader:Reader):TokenIterator =
     new TokenIterator(
-      new Tokenizer(),
       Tokenizer.State.Init,
       reader
     )
@@ -20,7 +19,6 @@ object TokenIterator:
 
 /** Итератор по лексемам */
 class TokenIterator(
-  private var tokenizer: Tokenizer,
   private var state: Tokenizer.State,
   private val reader: Reader,
 ) extends Iterator[Token]:
@@ -48,7 +46,7 @@ class TokenIterator(
                 case -1 =>
                   stop = true
                   tokenizerEnd = true
-                  tokenizer.end(curState) match
+                  Tokenizer.end(curState) match
                     case Left(err) => throw new TokenIteratorTokenizer(err)
                     case Right((newState,tokens)) =>
                       curState = newState
@@ -57,7 +55,7 @@ class TokenIterator(
                       else
                         closed = true
                 case _ =>
-                  tokenizer.accept(curState, charCode.toChar) match
+                  Tokenizer.accept(curState, charCode.toChar) match
                     case Left(err) =>  throw new TokenIteratorTokenizer(err)
                     case Right((newState,tokens)) => 
                       curState = newState
