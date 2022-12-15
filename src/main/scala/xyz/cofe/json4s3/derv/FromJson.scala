@@ -38,7 +38,29 @@ inline def isOptionals[A <: Tuple]:List[Boolean] = inline erasedValue[A] match
 object FromJson:
   def builder[A] = FromJsonBuilder.query[A]
 
-  inline given derived[A](using n:Mirror.Of[A]):FromJson[A] =
+  inline given derived4Sum[T](using m: scala.deriving.Mirror.SumOf[T]):FromJson[T] =
+    new FromJson[T] {
+      def fromJson(jsonTree: AST): Either[DervError, T] = {
+        val names : List[String] = labelsOf[T]
+        jsonTree match
+          case jsObj@ JsObj(jsFields) =>
+            if jsFields.isEmpty
+            then Left(FromSumFail(s"empty object $jsObj"))
+            else
+              val (name,content) = jsFields.head
+              val idx = names.indexOf(name)
+              if idx<0
+              then Left(FromSumFail(s"undefined type name, expect one of $names, but found $name"))
+              else
+                val fromJsonInstances = summonAllFromJson[m.MirroredElemTypes]
+                val fromJson = fromJsonInstances(idx)
+                fromJson.asInstanceOf[FromJson[T]].fromJson(content)
+          case jsValue =>
+            Left(FromSumFail(s"expect JsObj, but accept $jsValue"))
+      }
+    }
+
+  inline given derived4Product[A](using n:Mirror.ProductOf[A]):FromJson[A] =
     val elems    = summonAllFromJson[n.MirroredElemTypes]
     val defaults = summonAllDefaultValue[n.MirroredElemTypes]
     val names    = labelsFrom[n.MirroredElemLabels]
@@ -90,13 +112,6 @@ object FromJson:
             }
             res
           case _ => Left(TypeCastFail(s"fromJsonPoduct can't fetch from $js"))
-
-  // given FromJson[Option[Int]] with
-  //   def fromJson(j:AST) = j match
-  //     case JsInt(n) => Right(Some(n))
-  //     case JsFloat(n) => Right(Some(n.toInt))
-  //     case JsBig(n) => Right(Some(n.toInt))
-  //     case _ => Left(TypeCastFail(s"can't get double from $j"))
 
   given [A:FromJson]:FromJson[Option[A]] with
     def fromJson(j:AST) = summon[FromJson[A]].fromJson(j).map(Some(_))
