@@ -63,7 +63,14 @@ enum ADT:
 class SampleDeriveTest extends munit.FunSuite:
 
   test("tst") {
+    println( "Sample" )
     println( summon[Show[Sample]].show(Sample(1,2)) )
+    println( "ADT.Simbol" )
+    println( summon[Show[ADT.Simbol.type]].show(ADT.Simbol) )
+    println( "ADT" )
     println( summon[Show[ADT]].show(ADT.Simbol) )
+    println( "ADT.One" )
+    println( summon[Show[ADT.One]].show(ADT.One(3)) )
+    println( "ADT" )
     println( summon[Show[ADT]].show(ADT.One(3)) )
   }

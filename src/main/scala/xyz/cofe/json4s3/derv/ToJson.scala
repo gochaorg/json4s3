@@ -20,18 +20,21 @@ object ToJson:
   // https://dotty.epfl.ch/docs/reference/contextual/derivation.html
   def iterator[T](p: T) = p.asInstanceOf[Product].productIterator
 
-  inline given derived[T](using m: scala.deriving.Mirror.Of[T]): ToJson[T] = 
-    val elems2json = summonAllToJson[m.MirroredElemTypes]
-    inline m match
-      //case s: Mirror.SumOf[T] => toJsonSum(s, elems, labelsOf[T])
-      case p: Mirror.ProductOf[T] => toJsonProduct(p, elems2json)
+  // inline given derived[T](using m: scala.deriving.Mirror.Of[T]): ToJson[T] = 
+  //   val elems2json = summonAllToJson[m.MirroredElemTypes]
+  //   inline m match
+  //     //case s: Mirror.SumOf[T] => toJsonSum(s, elems, labelsOf[T])
+  //     case p: Mirror.ProductOf[T] => toJsonProduct(p, elems2json)
   
-  // def toJsonSum[T](s: Mirror.SumOf[T], elems: List[ToJson[_]], names:List[String]):ToJson[T] = 
-  //   new ToJson[T]:
-  //     def toJson(t:T):AST =
-  //       val nameIdx = s.ordinal(t)
-  //       val rr = elems.map { tjs => tjs.asInstanceOf[ToJson[Any]].toJson(t) }
-  //       throw ToSumFail(s"toJsonSum s:$s elems:$elems t:$t rr:$rr names:$names nameIdx=$nameIdx")
+  // // def toJsonSum[T](s: Mirror.SumOf[T], elems: List[ToJson[_]], names:List[String]):ToJson[T] = 
+  // //   new ToJson[T]:
+  // //     def toJson(t:T):AST =
+  // //       val nameIdx = s.ordinal(t)
+  // //       val rr = elems.map { tjs => tjs.asInstanceOf[ToJson[Any]].toJson(t) }
+  // //       throw ToSumFail(s"toJsonSum s:$s elems:$elems t:$t rr:$rr names:$names nameIdx=$nameIdx")
+  inline given derived[T](using m: scala.deriving.Mirror.ProductOf[T]): ToJson[T] = 
+    val elems2json = summonAllToJson[m.MirroredElemTypes]
+    toJsonProduct(m, elems2json)
 
   def toJsonProduct[T](
     p: Mirror.ProductOf[T], 
