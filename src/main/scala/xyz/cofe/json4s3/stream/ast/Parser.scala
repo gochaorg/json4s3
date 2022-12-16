@@ -16,7 +16,7 @@ import xyz.cofe.json4s3.stream.token.TokenIterator
  *     string ::= AST.JsStr
  *     number ::= AST.JsFloat | AST.JsInt | AST.JsBig
  * 
- *     AST.JsStr ::= Token.JsStr
+ *     AST.JsStr ::= Token.Str
  * 
  *     AST.JsFloat ::= Token.FloatNumber
  *     AST.JsInt   ::= Token.IntNumber
@@ -204,6 +204,13 @@ object Parser:
             state = newState
     result
 
+  /**
+   * Парсинг по одной лексеме за один раз
+   * @param state текущее состояние парсера
+   * @param token лексема
+   * @return Или ошибка - не соответствие грамматике
+   *         Или новое состояние + возможно распознанный элемент Json
+   */
   def accept(state:State, token:Token):Either[ParserError,(State,Option[AST])] = state match
     case State.Init => token match
       case Token.Str(text) => Right((State.Init,Some(AST.JsStr(text))))
