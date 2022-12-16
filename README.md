@@ -63,13 +63,15 @@ assert(TokenIterator("123 true false").toList == List(
 Ast parse
 -------------------
 
+[Основная статья о парсинге](ast-parse.md)
+
 - _Какие есть узлы AST_
 - _Парсинг AST_
 - _Итератор_
 - _Грамматика JSON_
 
 ```scala
-val astEt = Parser.parse(
+val astEt : Either[ParserError,AST] = Parser.parse(
   """{
         a: 1,
         b: {
@@ -78,6 +80,21 @@ val astEt = Parser.parse(
       }
   """)
 ```
+
+### Какие есть узлы AST
+
+```scala
+enum AST:
+  case JsStr( value:String )
+  case JsFloat( value:Double )
+  case JsInt( value:Int )
+  case JsBig( value:BigInt )
+  case JsNull
+  case JsBool( value:Boolean )
+  case JsArray( value:Seq[AST] )
+  case JsObj( value:List[(String,AST)] )
+```
+
 
 Pretty
 -----------------
