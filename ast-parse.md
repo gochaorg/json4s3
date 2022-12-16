@@ -179,3 +179,15 @@ assert(
     object ::= OpenBrace fieldKeyValue { Comma fieldKeyValue } [ Comma ] CloseSuqare
               | OpenBrace [ Comma ] CloseSuqare
     fieldKeyValue ::= fieldName {skipToken} Colon expression
+
+Согласно синтаксису допустакются следующие конструкции
+
+    { "a" : "value" }
+    {  a  : 'value' }
+
+Обе эти конструкции являются равно значными, 
+так же допускаются комментарии
+
+    { // single line comment
+      /* multi line comment */
+    }
