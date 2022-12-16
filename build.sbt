@@ -1,10 +1,12 @@
 val scala3Version = "3.2.0"
 
+Compile / scalacOptions += "-target:jvm-1.8"
+
 lazy val root = project
   .in(file("."))
   .settings(
     name := "json4s3",
-    version := "0.0.2",
+    version := "0.1.0",
 
     scalaVersion := scala3Version,
 
