@@ -38,3 +38,18 @@ class NestedTokenIteratorTest extends munit.FunSuite:
     nestedIter = new NestedTokenIterator(srcTIter)
     assert( nestedIter.toList == List( OpenBrace, Str("d"), Colon, IntNumber(4), CloseBrace ) )
   }
+
+  test("nested atomic") {
+    val tokens = List(
+      Identifier("null"),
+      Comma,
+      Str("fullyCompiled"),
+      Colon,
+      Identifier("true")
+    )
+
+    val nestedIter = new NestedTokenIterator(tokens.iterator)
+    val toks = nestedIter.toList
+    toks.foreach(println)
+    assert(toks.size==1)
+  }

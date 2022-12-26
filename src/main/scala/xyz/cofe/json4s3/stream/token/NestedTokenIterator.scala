@@ -18,6 +18,8 @@ class NestedTokenIterator( sourceIterator:Iterator[Token] ) extends Iterator[Tok
     else
       val tok = sourceIterator.next()
       tok match
+        case Token.Identifier(text) =>
+          if path.isEmpty then closed = true
         case Token.Str(text) => 
           if path.isEmpty then closed = true
         case Token.IntNumber(num) =>
@@ -47,7 +49,6 @@ class NestedTokenIterator( sourceIterator:Iterator[Token] ) extends Iterator[Tok
         case Token.Comma =>        
         case Token.Colon =>
         case Token.WhiteSpace(text) =>
-        case Token.Identifier(text) =>
         case Token.SLComment(text) =>
         case Token.MLComment(text) =>      
       tok
