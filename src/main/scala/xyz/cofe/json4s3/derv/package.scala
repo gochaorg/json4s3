@@ -4,6 +4,7 @@ import derv.errors._
 import xyz.cofe.json4s3.stream.token.Tokenizer
 import xyz.cofe.json4s3.stream.ast.Parser
 import xyz.cofe.json4s3.stream.ast.AST
+import xyz.cofe.json4s3.stream.ast.FormattingJson
 
 package object derv {
   extension (string:String)
@@ -14,7 +15,7 @@ package object derv {
         }
       }
 
-  extension [A:ToJson]( item:A )
+  extension [A:ToJson]( item:A )(using formatting:FormattingJson)
     def asJson:Option[AST] = 
       summon[ToJson[A]].toJson(item)
     def json:String =
