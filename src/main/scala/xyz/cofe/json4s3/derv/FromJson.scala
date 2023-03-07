@@ -35,7 +35,7 @@ inline def isOptionals[A <: Tuple]:List[Boolean] = inline erasedValue[A] match
   case x:(head *: tail) => 
     false :: isOptionals[tail]
 
-object FromJson:
+object FromJson extends selfConsistent.ConsistentFromJson:
   def builder[A] = FromJsonBuilder.query[A]
 
   inline given derived4Sum[T](using m: scala.deriving.Mirror.SumOf[T]):FromJson[T] =
@@ -113,41 +113,9 @@ object FromJson:
             res
           case _ => Left(TypeCastFail(s"fromJsonPoduct can't fetch from $js"))
 
-  given [A:FromJson]:FromJson[Option[A]] with
-    def fromJson(j:AST) = summon[FromJson[A]].fromJson(j).map(Some(_))
-
-  given FromJson[Double] with
-    def fromJson(j:AST) = j match
-      case JsInt(n) => Right(n.toDouble)
-      case JsFloat(n) => Right(n.toDouble)
-      case JsBig(n) => Right(n.toDouble)
-      case _ => Left(TypeCastFail(s"can't get double from $j"))
-  given FromJson[Float] with
-    def fromJson(j:AST) = j match
-      case JsInt(n) => Right(n.toFloat)
-      case JsFloat(n) => Right(n.toFloat)
-      case JsBig(n) => Right(n.toFloat)
-      case _ => Left(TypeCastFail(s"can't get float from $j"))
-  given FromJson[Byte] with
-    def fromJson(j:AST) = j match
-      case JsInt(n) => Right(n.toByte)
-      case JsFloat(n) => Right(n.toByte)
-      case JsBig(n) => Right(n.toByte)
-      case _ => Left(TypeCastFail(s"can't get byte from $j"))
-  given FromJson[Short] with
-    def fromJson(j:AST) = j match
-      case JsInt(n) => Right(n.toShort)
-      case JsFloat(n) => Right(n.toShort)
-      case JsBig(n) => Right(n.toShort)
-      case _ => Left(TypeCastFail(s"can't get short from $j"))
-  given FromJson[Int] with
-    def fromJson(j:AST) = j match
-      case JsInt(n) => Right(n)
-      case JsFloat(n) => Right(n.toInt)
-      case JsBig(n) => Right(n.toInt)
-      case _ => Left(TypeCastFail(s"can't get int from $j"))
   given FromJson[Long] with
     def fromJson(j:AST) = j match
+      case JsStr(str) if str.matches("-?\\d+") => str.toLongOption.map(n => Right(n)).getOrElse(Left(TypeCastFail(s"can't parse '${str}'' as Long")))
       case JsInt(n) => Right(n.toLong)
       case JsFloat(n) => Right(n.toLong)
       case JsBig(n) => Right(n.toLong)
@@ -158,25 +126,3 @@ object FromJson:
       case JsFloat(n) => Right(BigInt(n.toLong))
       case JsBig(n) => Right(n)
       case _ => Left(TypeCastFail(s"can't get big int from $j"))
-  given FromJson[Boolean] with
-    def fromJson(j:AST) = j match
-      case JsBool(n) => Right(n)
-      case _ => Left(TypeCastFail(s"can't get boolean from $j"))
-  given FromJson[String] with
-    def fromJson(j:AST) = j match
-      case JsStr(n) => Right(n)
-      case _ => Left(TypeCastFail(s"can't get string from $j"))
-  given [A:FromJson]:FromJson[List[A]] with
-    def fromJson(js:AST) = js match
-      case JsArray(array) =>
-        val item = summon[FromJson[A]]
-        array.map { a => item.fromJson(a) }.foldLeft( 
-          Right(List[A]()):Either[DervError,List[A]] 
-        ){ case(sum,itmEt) => 
-          sum.flatMap { lst => 
-            itmEt.map { itm =>
-              lst :+ itm
-            }
-          }
-        }
-      case _ => Left(TypeCastFail(s"can't get List[A] from $js"))

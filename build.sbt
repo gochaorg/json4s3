@@ -1,6 +1,7 @@
 val scala3Version = "3.2.0"
 
-Compile / scalacOptions += "-target:jvm-1.8"
+// not work
+//Compile / scalacOptions += "-target:jvm-1.8"
 
 lazy val root = project
   .in(file("."))
