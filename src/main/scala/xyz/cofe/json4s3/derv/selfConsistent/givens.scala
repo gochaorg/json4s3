@@ -132,25 +132,3 @@ given optionToJson[A:ToJson]:ToJson[Option[A]] with
   def toJson(itm:Option[A]) = itm.flatMap(it=>summon[ToJson[A]].toJson(it))
 
 /* #endregion */
-
-trait ConsistentFromJson:
-  given doubleFromJson:FromJson[Double] = selfConsistent.doubleFromJson
-  given floatFromJson:FromJson[Float] = selfConsistent.floatFromJson
-  given intFromJson:FromJson[Int] = selfConsistent.intFromJson
-  given shortFromJson:FromJson[Short] = selfConsistent.shortFromJson
-  given byteFromJson:FromJson[Byte] = selfConsistent.byteFromJson
-  given booleanFromJson:FromJson[Boolean] = selfConsistent.booleanFromJson
-  given stringFromJson:FromJson[String] = selfConsistent.stringFromJson
-  given listFromJson[A:FromJson]:FromJson[List[A]] = selfConsistent.listFromJson
-  given optionFromJson[A:FromJson]:FromJson[Option[A]] = selfConsistent.optionFromJson
-
-trait ConsistentToJson:
-  given doubleToJson:ToJson[Double] = selfConsistent.doubleToJson
-  given floatToJson:ToJson[Float] = selfConsistent.floatToJson
-  given intToJson:ToJson[Int] = selfConsistent.intToJson
-  given shortToJson:ToJson[Short] = selfConsistent.shortToJson
-  given byteToJson:ToJson[Byte] = selfConsistent.byteToJson
-  given booleanToJson:ToJson[Boolean] = selfConsistent.booleanToJson
-  given stringToJson:ToJson[String] = selfConsistent.stringToJson
-  given listToJson[A:ToJson]:ToJson[List[A]] = selfConsistent.listToJson
-  given optionToJson[A:ToJson]:ToJson[Option[A]] = selfConsistent.optionToJson
