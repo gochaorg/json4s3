@@ -38,7 +38,7 @@ inline def isOptionals[A <: Tuple]:List[Boolean] = inline erasedValue[A] match
 object FromJson extends selfConsistent.ConsistentFromJson:
   def builder[A] = FromJsonBuilder.query[A]
 
-  inline given derived4Sum[T](using m: scala.deriving.Mirror.SumOf[T]):FromJson[T] =
+  inline given derived[T](using m: scala.deriving.Mirror.SumOf[T]):FromJson[T] =
     new FromJson[T] {
       def fromJson(jsonTree: AST): Either[DervError, T] = {
         val names : List[String] = labelsOf[T]
@@ -60,7 +60,7 @@ object FromJson extends selfConsistent.ConsistentFromJson:
       }
     }
 
-  inline given derived4Product[A](using n:Mirror.ProductOf[A]):FromJson[A] =
+  inline given derived[A](using n:Mirror.ProductOf[A]):FromJson[A] =
     val elems    = summonAllFromJson[n.MirroredElemTypes]
     val defaults = summonAllDefaultValue[n.MirroredElemTypes]
     val names    = labelsFrom[n.MirroredElemLabels]

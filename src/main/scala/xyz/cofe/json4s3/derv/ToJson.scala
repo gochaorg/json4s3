@@ -36,7 +36,7 @@ object ToJson extends selfConsistent.ConsistentToJson:
   //     //case s: Mirror.SumOf[T] => toJsonSum(s, elems, labelsOf[T])
   //     case p: Mirror.ProductOf[T] => toJsonProduct(p, elems2json)
   
-  inline given toJsonSum[T](using m: scala.deriving.Mirror.SumOf[T]):ToJson[T] = 
+  inline given derived[T](using m: scala.deriving.Mirror.SumOf[T]):ToJson[T] = 
     new ToJson[T] {
       override def toJson(t: T): Option[AST] = {
         // Допустим есть такие типы
