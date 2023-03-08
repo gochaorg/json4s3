@@ -16,7 +16,7 @@ inline def summonAllToJson[T <: Tuple]: List[ToJson[_]] =
 trait ToJson[T]:
   def toJson(t:T):Option[AST]
 
-object ToJson extends selfConsistent.ConsistentToJson:
+object ToJson:
   // https://dotty.epfl.ch/docs/reference/contextual/derivation.html
   def iterator[T](p: T) = p.asInstanceOf[Product].productIterator
 
@@ -30,13 +30,14 @@ object ToJson extends selfConsistent.ConsistentToJson:
 
   inline def labelsOf[A](using m:Mirror.Of[A]):List[String] = labels[m.MirroredElemLabels]
 
-  // inline given derived[T](using m: scala.deriving.Mirror.Of[T]): ToJson[T] = 
-  //   val elems2json = summonAllToJson[m.MirroredElemTypes]
+  // inline given derived[T](using m: Mirror.SumOf[T]):ToJson[T] = 
+  //   val names : List[String] = labelsOf[T]
   //   inline m match
-  //     //case s: Mirror.SumOf[T] => toJsonSum(s, elems, labelsOf[T])
-  //     case p: Mirror.ProductOf[T] => toJsonProduct(p, elems2json)
-  
-  inline given derived[T](using m: scala.deriving.Mirror.SumOf[T]):ToJson[T] = 
+  //     case s: Mirror.SumOf[T]     => derivedSum[T](s, names)
+  //     case p: Mirror.ProductOf[T] => derivedProduct[T](p)
+
+  inline given derivedSum[T](using m: Mirror.SumOf[T]):ToJson[T] = 
+    val names : List[String] = labelsOf[T]
     new ToJson[T] {
       override def toJson(t: T): Option[AST] = {
         // Допустим есть такие типы
@@ -47,7 +48,7 @@ object ToJson extends selfConsistent.ConsistentToJson:
 
         // Имена проиводных типов от базового
         // В данном случае List("Sym", "One", "Two")
-        val names : List[String] = labelsOf[T]
+        // val names : List[String] = labelsOf[T]
 
         // Указывает на конкретный экземпляр типа
         // В жанном случае может принимать значения 
@@ -68,7 +69,7 @@ object ToJson extends selfConsistent.ConsistentToJson:
       }
     }
 
-  inline given derived[T](using m: scala.deriving.Mirror.ProductOf[T]): ToJson[T] = 
+  inline given derivedProduct[T](using m: Mirror.ProductOf[T]): ToJson[T] = 
     val elems2json = summonAllToJson[m.MirroredElemTypes]
     toJsonProduct(m, elems2json)
 
@@ -91,4 +92,14 @@ object ToJson extends selfConsistent.ConsistentToJson:
 
         Some(JsObj( fields ))
 
-  given [A:ToJson]:ToJson[List[A]] = selfConsistent.listToJson
+  given optionToJson[A:ToJson]:ToJson[Option[A]] = selfConsistent.optionToJson
+  given listToJson[A:ToJson]:ToJson[List[A]] = selfConsistent.listToJson
+  given doubleToJson:ToJson[Double] = selfConsistent.doubleToJson
+  given floatToJson:ToJson[Float] = selfConsistent.floatToJson
+  given intToJson:ToJson[Int] = selfConsistent.intToJson
+  given shortToJson:ToJson[Short] = selfConsistent.shortToJson
+  given byteToJson:ToJson[Byte] = selfConsistent.byteToJson
+  given booleanToJson:ToJson[Boolean] = selfConsistent.booleanToJson
+  given stringToJson:ToJson[String] = selfConsistent.stringToJson
+  given long2jsStr:ToJson[Long] = bignum.long2jsStr
+  given bigInt2jsStr:ToJson[BigInt] = bignum.bigInt2jsStr

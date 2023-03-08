@@ -35,13 +35,19 @@ inline def isOptionals[A <: Tuple]:List[Boolean] = inline erasedValue[A] match
   case x:(head *: tail) => 
     false :: isOptionals[tail]
 
-object FromJson extends selfConsistent.ConsistentFromJson:
+object FromJson:
   def builder[A] = FromJsonBuilder.query[A]
 
-  inline given derived[T](using m: scala.deriving.Mirror.SumOf[T]):FromJson[T] =
+  // inline given derived[T](using m: Mirror.Of[T]):FromJson[T] =
+  //   val names : List[String] = labelsOf[T]
+  //   inline m match
+  //     case s: Mirror.SumOf[T]     => derivedSum[T](s,names)
+  //     case p: Mirror.ProductOf[T] => derivedProduct[T](p)
+
+  inline given derivedSum[T](using m: Mirror.SumOf[T]):FromJson[T] =
+    val names : List[String] = labelsOf[T]
     new FromJson[T] {
       def fromJson(jsonTree: AST): Either[DervError, T] = {
-        val names : List[String] = labelsOf[T]
         jsonTree match
           case jsObj@ JsObj(jsFields) =>
             if jsFields.isEmpty
@@ -60,7 +66,7 @@ object FromJson extends selfConsistent.ConsistentFromJson:
       }
     }
 
-  inline given derived[A](using n:Mirror.ProductOf[A]):FromJson[A] =
+  inline given derivedProduct[A](using n:Mirror.ProductOf[A]):FromJson[A] =
     val elems    = summonAllFromJson[n.MirroredElemTypes]
     val defaults = summonAllDefaultValue[n.MirroredElemTypes]
     val names    = labelsFrom[n.MirroredElemLabels]
@@ -113,4 +119,14 @@ object FromJson extends selfConsistent.ConsistentFromJson:
             res
           case _ => Left(TypeCastFail(s"fromJsonPoduct can't fetch from $js"))
 
-  given [A:FromJson]:FromJson[List[A]] = selfConsistent.listFromJson
+  given listFromJson[A:FromJson]:FromJson[List[A]] = selfConsistent.listFromJson
+  given long4numOrStr:FromJson[Long] = bignum.long4numOrStr
+  given bigInt4numOrStr:FromJson[BigInt] = bignum.bigInt4numOrStr
+  given optionFromJson[A:FromJson]:FromJson[Option[A]] = selfConsistent.optionFromJson
+  given stringFromJson:FromJson[String] = selfConsistent.stringFromJson
+  given booleanFromJson:FromJson[Boolean] = selfConsistent.booleanFromJson
+  given byteFromJson:FromJson[Byte] = selfConsistent.byteFromJson
+  given shortFromJson:FromJson[Short] = selfConsistent.shortFromJson
+  given intFromJson:FromJson[Int] = selfConsistent.intFromJson
+  given floatFromJson:FromJson[Float] = selfConsistent.floatFromJson
+  given doubleFromJson:FromJson[Double] = selfConsistent.doubleFromJson

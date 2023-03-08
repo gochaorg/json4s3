@@ -6,8 +6,6 @@ import xyz.cofe.json4s3.stream.ast.ParserIterator
 import xyz.cofe.json4s3.stream.ast.AST
 import xyz.cofe.json4s3.stream.ast.AST._
 
-import xyz.cofe.json4s3.derv.std.given
-
 class DerivingTest extends munit.FunSuite:
   test("123 as int") { assert("123".jsonAs[Int] == Right(123)) }
   test("1.3 as int") { assert("1.3".jsonAs[Int] == Right(1)) }
