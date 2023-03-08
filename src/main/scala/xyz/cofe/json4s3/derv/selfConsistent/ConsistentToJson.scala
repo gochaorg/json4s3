@@ -9,6 +9,6 @@ trait ConsistentToJson:
   given byteToJson:ToJson[Byte] = selfConsistent.byteToJson
   given booleanToJson:ToJson[Boolean] = selfConsistent.booleanToJson
   given stringToJson:ToJson[String] = selfConsistent.stringToJson
-  given listToJson[A:ToJson]:ToJson[List[A]] = selfConsistent.listToJson
+  //given listToJson[A:ToJson]:ToJson[List[A]] = selfConsistent.listToJson
   given optionToJson[A:ToJson]:ToJson[Option[A]] = selfConsistent.optionToJson
 

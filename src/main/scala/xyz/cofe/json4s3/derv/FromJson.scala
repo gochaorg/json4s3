@@ -112,3 +112,5 @@ object FromJson extends selfConsistent.ConsistentFromJson:
             }
             res
           case _ => Left(TypeCastFail(s"fromJsonPoduct can't fetch from $js"))
+
+  given [A:FromJson]:FromJson[List[A]] = selfConsistent.listFromJson

@@ -21,6 +21,8 @@ class DerivingTest extends munit.FunSuite:
   test("false as boolean") { assert("false".jsonAs[Boolean] == Right(false)) }
 
   test("[1,2] as List[Int]") {
+    println("-------------")
+    println("[1,2]".jsonAs[List[Int]])
     assert(
       "[1,2]".jsonAs[List[Int]] == Right(List(1,2))
     )
@@ -77,4 +79,19 @@ class DerivingTest extends munit.FunSuite:
 
     assert( """{ type:"1", a:1 }""".jsonAs[BaseSample] == Right(ChildOne(1)) )
     assert( """{ type:"2", a:"xcv" }""".jsonAs[BaseSample] == Right(ChildTwo("xcv")) )
+  }
+
+  case class DefVal( a:String )
+  object DefVal:
+    given defval:DefaultValue[DefVal] = new DefaultValue[DefVal] {
+      override def defaultValue: Option[DefVal] = Some(DefVal("sample"))
+    }
+  case class ItemWithDef( a:Int, b:DefVal )
+
+  test("default") {
+    assert("""{ "a": 1 }""".jsonAs[ItemWithDef] == Right(ItemWithDef(1,DefVal("sample"))))
+  }
+
+  test("bignum") {
+    assert( 1234567890L.json == "\"1234567890\"" )
   }

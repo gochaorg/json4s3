@@ -3,6 +3,13 @@ json4s3
 
 json4s3 - Это библиотека для парсинга json
 
+Установка
+--------------------------
+
+sbt
+
+_пример для sbt_
+
 Lexem parse (tokenizer)
 --------------------------
 
@@ -151,15 +158,7 @@ assert( astEt.query("b")("c").int == Right(2) )
 Derive
 -----------
 
-- _FromJson / ToJson_
-- _Примеры создания FromJson/ToJson_
-- _Пример с простыми полями_
-- _Пример с опциональными полями_
-- _Пример с значениями по умолчанию_
-- _Пример с ADT_
-  - _Простой пример ToJson_
-  - _Пример ToJson + classTag_
-  - _Выбор FromJson на основании query_
+[Основная статья о derive](derive.md)
 
 ```scala
 import xyz.cofe.json4s3.derv
@@ -186,6 +185,7 @@ implicit val baseSampleFromJson : FromJson[BaseSample] =
 assert( """{ type:"1", a:1 }""".jsonAs[BaseSample] == Right(ChildOne(1)) )
 assert( """{ type:"2", a:"xcv" }""".jsonAs[BaseSample] == Right(ChildTwo("xcv")) )
 ```
+
 
 Errors
 --------------

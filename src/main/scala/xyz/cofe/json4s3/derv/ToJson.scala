@@ -91,3 +91,4 @@ object ToJson extends selfConsistent.ConsistentToJson:
 
         Some(JsObj( fields ))
 
+  given [A:ToJson]:ToJson[List[A]] = selfConsistent.listToJson

@@ -9,5 +9,5 @@ trait ConsistentFromJson:
   given byteFromJson:FromJson[Byte] = selfConsistent.byteFromJson
   given booleanFromJson:FromJson[Boolean] = selfConsistent.booleanFromJson
   given stringFromJson:FromJson[String] = selfConsistent.stringFromJson
-  given listFromJson[A:FromJson]:FromJson[List[A]] = selfConsistent.listFromJson
+  //given listFromJson[A:FromJson]:FromJson[List[A]] = selfConsistent.listFromJson
   given optionFromJson[A:FromJson]:FromJson[Option[A]] = selfConsistent.optionFromJson
