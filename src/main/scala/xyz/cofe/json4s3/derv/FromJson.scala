@@ -112,17 +112,3 @@ object FromJson extends selfConsistent.ConsistentFromJson:
             }
             res
           case _ => Left(TypeCastFail(s"fromJsonPoduct can't fetch from $js"))
-
-  given FromJson[Long] with
-    def fromJson(j:AST) = j match
-      case JsStr(str) if str.matches("-?\\d+") => str.toLongOption.map(n => Right(n)).getOrElse(Left(TypeCastFail(s"can't parse '${str}'' as Long")))
-      case JsInt(n) => Right(n.toLong)
-      case JsFloat(n) => Right(n.toLong)
-      case JsBig(n) => Right(n.toLong)
-      case _ => Left(TypeCastFail(s"can't get long from $j"))
-  given FromJson[BigInt] with
-    def fromJson(j:AST) = j match
-      case JsInt(n) => Right(BigInt(n))
-      case JsFloat(n) => Right(BigInt(n.toLong))
-      case JsBig(n) => Right(n)
-      case _ => Left(TypeCastFail(s"can't get big int from $j"))

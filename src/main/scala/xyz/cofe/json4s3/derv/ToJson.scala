@@ -91,9 +91,3 @@ object ToJson extends selfConsistent.ConsistentToJson:
 
         Some(JsObj( fields ))
 
-  given ToJson[Long] with
-    def toJson(t: Long): Option[AST] = Some(AST.JsBig(t))
-
-  given ToJson[BigInt] with
-    def toJson(t: BigInt): Option[AST] = Some(AST.JsBig(t))
-

@@ -1,5 +1,7 @@
 package xyz.cofe.json4s3.derv
 
+import xyz.cofe.json4s3.derv.std.given
+
 class OptLongTest extends munit.FunSuite:
   case class Sample(value:Option[Long])
 
