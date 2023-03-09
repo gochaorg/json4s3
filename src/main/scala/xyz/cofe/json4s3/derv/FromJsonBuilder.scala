@@ -7,6 +7,24 @@ import xyz.cofe.json4s3.stream.ast.AST
 import xyz.cofe.json4s3.derv.errors.DervError
 import xyz.cofe.json4s3.query.QuerySet
 
+/**
+  * Создание FromJson 
+  * 
+  * Пример
+  * 
+  * ```
+  * sealed trait BaseSample
+  * case class ChildOne( a:Int ) extends BaseSample
+  * case class ChildTwo( a:String ) extends BaseSample
+  * 
+  * import xyz.cofe.json4s3.derv.FromJsonBuilder._
+  * implicit val baseSampleFromJson : FromJson[BaseSample] = 
+  *   FromJson.builder
+  *     .select[ChildOne]( q => q("type").string === "1" )
+  *     .select[ChildTwo]( q => q("type").string === "2" )
+  *     .build
+  * ```
+  */
 object FromJsonBuilder:
   def query[A]:Selector[A] = Selector()
 
@@ -28,7 +46,6 @@ object FromJsonBuilder:
             case Some(value) => value.fromJson(j)
         }
       }
-    // def map[B:FromJson] = new Mapper[A,B]()
 
   extension [A,B](query:Either[errors.QueryError,String])
     def ===( value:String ):Boolean = 
@@ -36,7 +53,3 @@ object FromJsonBuilder:
         case Left(err) => false
         case Right(str) => str==value
       
-
-  // class Mapper[A,B]( implicit f:FromJson[B] ){
-  //   def query:Query = ???
-  // }

@@ -8,7 +8,11 @@ import scala.deriving.*
 import scala.compiletime.{erasedValue, summonInline, constValue}
 import scala.CanEqual.derived
 
-/** Получение объекта определенного типа из Json */
+/** 
+ * Получение объекта определенного типа из Json 
+ * 
+ * см [[FromJsonBuilder]]
+ */
 trait FromJson[T]:
   def fromJson(j:AST):Either[DervError,T]
 

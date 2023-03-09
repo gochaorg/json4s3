@@ -13,6 +13,9 @@ inline def summonAllToJson[T <: Tuple]: List[ToJson[_]] =
     case _: EmptyTuple => Nil
     case _: (t *: ts) => summonInline[ToJson[t]] :: summonAllToJson[ts]
 
+/**
+ * Декодирование Scala структуры в Json
+ */
 trait ToJson[T]:
   def toJson(t:T):Option[AST]
 
@@ -92,6 +95,10 @@ object ToJson:
 
         Some(JsObj( fields ))
 
+  /* #region Поддержка базовых типов */
+  // Хотелось вынести в отдельный trait и затем его with к данному объекту (ToJson)
+  // но в scala 3.2 много проблем
+
   given optionToJson[A:ToJson]:ToJson[Option[A]] = selfConsistent.optionToJson
   given listToJson[A:ToJson]:ToJson[List[A]] = selfConsistent.listToJson
   given doubleToJson:ToJson[Double] = selfConsistent.doubleToJson
@@ -103,3 +110,5 @@ object ToJson:
   given stringToJson:ToJson[String] = selfConsistent.stringToJson
   given long2jsStr:ToJson[Long] = bignum.long2jsStr
   given bigInt2jsStr:ToJson[BigInt] = bignum.bigInt2jsStr
+
+  /* #endregion */
